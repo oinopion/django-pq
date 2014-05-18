@@ -7,6 +7,7 @@ from django.db import connections, DatabaseError
 from django.db import transaction
 from django.db import models
 from django.conf import settings
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from six import string_types
 
@@ -47,6 +48,7 @@ class _EnqueueArgs(object):
             self.kwargs = kwargs.pop('kwargs', None)
 
 
+@python_2_unicode_compatible
 class Queue(models.Model):
 
     connection = None
@@ -61,7 +63,7 @@ class Queue(models.Model):
     _async = True
     _saved = False
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @classmethod
