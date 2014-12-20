@@ -3,7 +3,6 @@ import multiprocessing
 from datetime import datetime, timedelta
 from django.utils.timezone import utc, now
 from django.test import TestCase, TransactionTestCase
-from nose2.tools import params
 
 from pq import Queue
 from pq.queue import Queue as PQ
@@ -323,7 +322,7 @@ class TestListenForJobsSelect(TransactionTestCase):
             import psycopg2
             import psycopg2.extensions
             time.sleep(1)
-            conn = psycopg2.connect("dbname=test_django-pq host=localhost user=django-pq")
+            conn = psycopg2.connect("dbname=test_django-pq")
             conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
             curs = conn.cursor()

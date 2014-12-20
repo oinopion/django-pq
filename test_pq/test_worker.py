@@ -4,7 +4,6 @@ import times
 from datetime import datetime
 from django.test import TransactionTestCase, TestCase
 from django.utils.timezone import utc
-from nose2.tools import params
 
 from pq import Queue
 from pq.queue import get_failed_queue
@@ -189,18 +188,18 @@ class TestWorkerSetsResultTTL(TransactionTestCase):
         self.q = Queue()
         self.w = Worker.create([self.q])
 
-    @params((10,10), (-1,-1), (0, None))
-    def test_worker_sets_result_ttl(self, ttl, outcome):
+    def test_worker_sets_result_ttl(self):
         """Ensure that Worker properly sets result_ttl for individual jobs or deletes them."""
-        job = self.q.enqueue(say_hello, args=('Frank',), result_ttl=ttl)
-        self.w.work(burst=True)
-        try:
-            rjob = Job.objects.get(id=job.id)
-            result_ttl = rjob.result_ttl
-        except Job.DoesNotExist:
-            result_ttl = None
+        for ttl, outcome in ((10,10), (-1,-1), (0, None)):
+            job = self.q.enqueue(say_hello, args=('Frank',), result_ttl=ttl)
+            self.w.work(burst=True)
+            try:
+                rjob = Job.objects.get(id=job.id)
+                result_ttl = rjob.result_ttl
+            except Job.DoesNotExist:
+                result_ttl = None
 
-        self.assertEqual(result_ttl, outcome)
+            self.assertEqual(result_ttl, outcome)
 
 
 class TestWorkerDeletesExpiredTTL(TransactionTestCase):

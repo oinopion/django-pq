@@ -3,7 +3,6 @@ from datetime import timedelta, datetime
 from django.test import TestCase, TransactionTestCase
 from django.utils.timezone import utc, now
 from dateutil.relativedelta import relativedelta
-from nose2.tools import params
 
 from pq.job import Job
 from pq import Queue

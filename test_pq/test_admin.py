@@ -1,15 +1,12 @@
 from datetime import datetime
 from django.test import TestCase, TransactionTestCase
 from django.core.urlresolvers import reverse
-from django.contrib import admin
 from django.contrib.auth.models import User
-from nose2.tools import params
 
 from pq.job import (Job, FailedJob, DequeuedJob,
                      QueuedJob, ScheduledJob)
 from pq.worker import Worker
 from pq import Queue
-from pq.queue import FailedQueue
 from pq.admin import requeue_failed_jobs
 
 from .fixtures import say_hello, div_by_zero
@@ -26,18 +23,19 @@ class TestJobAdmin(TransactionTestCase):
         w = Worker.create(self.q)
         w.work(burst=True)
         self.q.enqueue_call(say_hello, args=('me',))
-        
 
-    @params(
-        ("failedjob", FailedJob),
-        ("queuedjob", QueuedJob),
-        ("dequeuedjob", DequeuedJob),
-        ("scheduledjob", ScheduledJob))
-    def test_changelist(self, modelname, Model):
-        url = reverse("admin:pq_%s_changelist" % modelname)
-        response = self.client.get(url, follow = True)
-        self.failUnlessEqual(response.status_code, 200,
-                     "%s != %s -> %s, url: %s" % (response.status_code, 200, repr(Model), url))
+    def test_changelist(self):
+        data = (
+            ("failedjob", FailedJob),
+            ("queuedjob", QueuedJob),
+            ("dequeuedjob", DequeuedJob),
+            ("scheduledjob", ScheduledJob),
+        )
+        for modelname, Model in data:
+            url = reverse("admin:pq_%s_changelist" % modelname)
+            response = self.client.get(url, follow = True)
+            self.failUnlessEqual(response.status_code, 200,
+                                 "%s != %s -> %s, url: %s" % (response.status_code, 200, repr(Model), url))
 
 class TestRequeueAdminAction(TransactionTestCase):
     def setUp(self):

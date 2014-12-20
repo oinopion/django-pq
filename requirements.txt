@@ -1,5 +1,3 @@
-django
+django<1.7
 psycopg2
-nose2
-nose2django
 tox
