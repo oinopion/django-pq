@@ -1,5 +1,9 @@
 language: python
 install:
-      - pip install tox 
+      - pip install tox
+addons:
+      postgresql: "9.3"
+before_script:
+      - createdb django-pq
 script:
       - tox
