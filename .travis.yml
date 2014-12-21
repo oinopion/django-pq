@@ -1,6 +1,9 @@
 language: python
 install:
       - pip install tox
+cache:
+      directories:
+            - .tox
 addons:
       postgresql: "9.3"
 before_script:
