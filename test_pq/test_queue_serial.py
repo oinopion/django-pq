@@ -63,7 +63,7 @@ class TestDequeueAnySerialJobs(TestCase):
 
     def test_dequeue_any_serial(self):
         job, queue = Queue.dequeue_any([self.sq], timeout=10)
-        self.assertEquals(job.func, do_nothing)
+        self.assertEqual(job.func, do_nothing)
 
 
 class TestDequeueAnyLockedSerialJobs(TestCase):
@@ -90,7 +90,7 @@ class TestDequeueLockExpiresSerialJobs(TestCase):
         """Test that it raises a DequeueTimeout timeout"""
         time.sleep(1)
         job, queue = Queue.dequeue_any([self.sq], timeout=1)
-        self.assertEquals(self.job.id, job.id)
+        self.assertEqual(self.job.id, job.id)
 
 
 class TestQueueCreationConflictIssue2(TransactionTestCase):

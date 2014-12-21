@@ -21,7 +21,7 @@ class TestWorker(TransactionTestCase):
         """Worker creation."""
 
         w = Worker.create([self.fooq, self.barq])
-        self.assertEquals(w.queues, [self.fooq, self.barq])
+        self.assertEqual(w.queues, [self.fooq, self.barq])
 
 
 class TestWorkNoJobs(TransactionTestCase):
@@ -30,7 +30,7 @@ class TestWorkNoJobs(TransactionTestCase):
         self.w = Worker.create([self.fooq, self.barq])
 
     def test_work_no_jobs(self):
-        self.assertEquals(self.w.work(burst=True), False,
+        self.assertEqual(self.w.work(burst=True), False,
                 'Did not expect any work on the queue.')
 
 
@@ -42,7 +42,7 @@ class TestWorkerWithJobs(TransactionTestCase):
 
     def test_worker_with_jobs(self):
 
-        self.assertEquals(self.w.work(burst=True), True,
+        self.assertEqual(self.w.work(burst=True), True,
                 'Expected at least some work done.')
 
 
@@ -55,10 +55,10 @@ class TestWorkViaStringArg(TransactionTestCase):
     def test_work_via_string_argument(self):
         """Worker processes work fed via string arguments."""
 
-        self.assertEquals(self.w.work(burst=True), True,
+        self.assertEqual(self.w.work(burst=True), True,
                 'Expected at least some work done.')
         job = Job.objects.get(id=self.job.id)
-        self.assertEquals(job.result, 'Hi there, Frank!')
+        self.assertEqual(job.result, 'Hi there, Frank!')
 
 class TestWorkIsUnreadable(TransactionTestCase):
     def setUp(self):
@@ -71,8 +71,8 @@ class TestWorkIsUnreadable(TransactionTestCase):
     def test_work_is_unreadable(self):
         """Unreadable jobs are put on the failed queue."""
 
-        self.assertEquals(self.fq.count, 0)
-        self.assertEquals(self.q.count, 0)
+        self.assertEqual(self.fq.count, 0)
+        self.assertEqual(self.q.count, 0)
 
         # NOTE: We have to fake this enqueueing for this test case.
         # What we're simulating here is a call to a function that is not
@@ -84,13 +84,13 @@ class TestWorkIsUnreadable(TransactionTestCase):
         job.save()
 
 
-        self.assertEquals(self.q.count, 1)
+        self.assertEqual(self.q.count, 1)
 
         # All set, we're going to process it
 
         self.w.work(burst=True)   # should silently pass
-        self.assertEquals(self.q.count, 0)
-        self.assertEquals(self.fq.count, 1)
+        self.assertEqual(self.q.count, 0)
+        self.assertEqual(self.fq.count, 1)
 
 
 class TestWorkFails(TransactionTestCase):
@@ -108,16 +108,16 @@ class TestWorkFails(TransactionTestCase):
         self.w.work(burst=True)  # should silently pass
 
         # Postconditions
-        self.assertEquals(self.q.count, 0)
-        self.assertEquals(self.fq.count, 1)
+        self.assertEqual(self.q.count, 0)
+        self.assertEqual(self.fq.count, 1)
 
         # Check the job
         job = Job.objects.get(id=self.job.id)
-        self.assertEquals(job.origin, self.q.name)
+        self.assertEqual(job.origin, self.q.name)
 
         # Should be the original enqueued_at date, not the date of enqueueing
         # to the failed queue
-        self.assertEquals(job.enqueued_at, self.enqueued_at)
+        self.assertEqual(job.enqueued_at, self.enqueued_at)
         self.assertIsNotNone(job.exc_info)  # should contain exc_info
 
 
@@ -142,12 +142,12 @@ class TestWorkerCustomExcHandling(TransactionTestCase):
         w.work(burst=True)  # should silently pass
 
         # Postconditions
-        self.assertEquals(self.q.count, 0)
-        self.assertEquals(self.fq.count, 0)
+        self.assertEqual(self.q.count, 0)
+        self.assertEqual(self.fq.count, 0)
 
         # Check the job
         job = Job.objects.get(id=self.job.id)
-        self.assertEquals(job.status, Job.FAILED)
+        self.assertEqual(job.status, Job.FAILED)
 
 
 class TestWorkerTimeouts(TransactionTestCase):
@@ -167,9 +167,9 @@ class TestWorkerTimeouts(TransactionTestCase):
                 args=(self.sentinel_file, 4),
                 timeout=1)
 
-        self.assertEquals(os.path.exists(self.sentinel_file), False)
+        self.assertEqual(os.path.exists(self.sentinel_file), False)
         self.w.work(burst=True)
-        self.assertEquals(os.path.exists(self.sentinel_file), False)
+        self.assertEqual(os.path.exists(self.sentinel_file), False)
 
         job = Job.objects.get(id=jobr.id)
         self.assertIn('JobTimeoutException', job.exc_info)

@@ -18,9 +18,9 @@ class TestJobCreation(TestCase):
         self.assertIsNone(job.instance)
 
         # Job data is set...
-        self.assertEquals(job.func, some_calculation)
-        self.assertEquals(job.args, (3, 4))
-        self.assertEquals(job.kwargs, {'z': 2})
+        self.assertEqual(job.func, some_calculation)
+        self.assertEqual(job.args, (3, 4))
+        self.assertEqual(job.kwargs, {'z': 2})
 
         # ...but metadata is not
         self.assertIsNone(job.origin)
@@ -32,18 +32,18 @@ class TestJobCreation(TestCase):
         job = Job.create(func=c.calculate, args=(3, 4))
 
         # Job data is set
-        self.assertEquals(job.func, c.calculate)
-        self.assertEquals(job.instance, c)
-        self.assertEquals(job.args, (3, 4))
+        self.assertEqual(job.func, c.calculate)
+        self.assertEqual(job.instance, c)
+        self.assertEqual(job.args, (3, 4))
 
     def test_create_job_from_string_function(self):
         """Creation of jobs using string specifier."""
         job = Job.create(func='test_pq.fixtures.say_hello', args=('World',))
 
         # Job data is set
-        self.assertEquals(job.func, say_hello)
+        self.assertEqual(job.func, say_hello)
         self.assertIsNone(job.instance)
-        self.assertEquals(job.args, ('World',))
+        self.assertEqual(job.args, ('World',))
 
 
 class TestScheduledJobCreation(TestCase):
@@ -141,7 +141,7 @@ class Test_get_job_no_promise(TransactionTestCase):
         job, promise, timeout = Job._get_job_or_promise(
             self.q.connection, self.q, self.timeout)
         self.assertEqual(timeout, self.timeout)
-        self.assertEquals(job.id, self.job.id)
+        self.assertEqual(job.id, self.job.id)
         self.assertIsNone(promise)
 
 

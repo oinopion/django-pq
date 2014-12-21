@@ -63,7 +63,7 @@ class TestEnqueue(TransactionTestCase):
         self.q.enqueue_job(self.job)
 
         # Postconditions
-        self.assertEquals(self.job.origin, self.q.name)
+        self.assertEqual(self.job.origin, self.q.name)
         self.assertIsNotNone(self.job.enqueued_at)
 
 
@@ -89,16 +89,16 @@ class TestDequeue(TransactionTestCase):
         """Dequeueing jobs from queues."""
 
         # Dequeue a job (not a job ID) off the queue
-        self.assertEquals(self.q.count, 1)
+        self.assertEqual(self.q.count, 1)
         job = self.q.dequeue()
-        self.assertEquals(job.id, self.result.id)
-        self.assertEquals(job.func, say_hello)
-        self.assertEquals(job.origin, self.q.name)
-        self.assertEquals(job.args[0], 'Rick')
-        self.assertEquals(job.kwargs['foo'], 'bar')
+        self.assertEqual(job.id, self.result.id)
+        self.assertEqual(job.func, say_hello)
+        self.assertEqual(job.origin, self.q.name)
+        self.assertEqual(job.args[0], 'Rick')
+        self.assertEqual(job.kwargs['foo'], 'bar')
 
         # ...and assert the queue count when down
-        self.assertEquals(self.q.count, 0)
+        self.assertEqual(self.q.count, 0)
 
 
 class TestDequeueInstanceMethods(TransactionTestCase):
@@ -114,8 +114,8 @@ class TestDequeueInstanceMethods(TransactionTestCase):
 
         job = self.q.dequeue()
 
-        self.assertEquals(job.func.__name__, 'calculate')
-        self.assertEquals(job.args, (3, 4))
+        self.assertEqual(job.func.__name__, 'calculate')
+        self.assertEqual(job.args, (3, 4))
 
 
 class TestDequeueAnyEmpty(TransactionTestCase):
@@ -127,7 +127,7 @@ class TestDequeueAnyEmpty(TransactionTestCase):
     def test_dequeue_any_empty(self):
         """Fetching work from any given queue."""
 
-        self.assertEquals(PQ.dequeue_any([self.fooq, self.barq], None), None)
+        self.assertEqual(PQ.dequeue_any([self.fooq, self.barq], None), None)
 
 
 class TestDequeueAnySingle(TransactionTestCase):
@@ -141,8 +141,8 @@ class TestDequeueAnySingle(TransactionTestCase):
     def test_dequeue_any_single(self):
 
         job, queue = PQ.dequeue_any([self.fooq, self.barq], None)
-        self.assertEquals(job.func, say_hello)
-        self.assertEquals(queue, self.barq)
+        self.assertEqual(job.func, say_hello)
+        self.assertEqual(queue, self.barq)
 
 
 class TestDequeueAnyMultiple(TransactionTestCase):
@@ -157,17 +157,17 @@ class TestDequeueAnyMultiple(TransactionTestCase):
     def test_dequeue_any_multiple(self):
 
         job, queue = PQ.dequeue_any([self.fooq, self.barq], None)
-        self.assertEquals(queue, self.fooq)
-        self.assertEquals(job.func, say_hello)
-        self.assertEquals(job.origin, self.fooq.name)
-        self.assertEquals(job.args[0], 'for Foo',
+        self.assertEqual(queue, self.fooq)
+        self.assertEqual(job.func, say_hello)
+        self.assertEqual(job.origin, self.fooq.name)
+        self.assertEqual(job.args[0], 'for Foo',
                 'Foo should be dequeued first.')
 
         job, queue = PQ.dequeue_any([self.fooq, self.barq], None)
-        self.assertEquals(queue, self.barq)
-        self.assertEquals(job.func, say_hello)
-        self.assertEquals(job.origin, self.barq.name)
-        self.assertEquals(job.args[0], 'for Bar',
+        self.assertEqual(queue, self.barq)
+        self.assertEqual(job.func, say_hello)
+        self.assertEqual(job.origin, self.barq.name)
+        self.assertEqual(job.args[0], 'for Bar',
                 'Bar should be dequeued second.')
 
 
@@ -190,7 +190,7 @@ class TestFQueueQuarantine(TransactionTestCase):
 
         get_failed_queue().quarantine(self.job, Exception('Some fake error'))  # noqa
         self.assertEqual(sorted(PQ.all()), sorted([get_failed_queue()]))  # noqa
-        self.assertEquals(get_failed_queue().count, 1)
+        self.assertEqual(get_failed_queue().count, 1)
 
 
 class TestFQueueQuarantineTimeout(TransactionTestCase):
@@ -207,7 +207,7 @@ class TestFQueueQuarantineTimeout(TransactionTestCase):
         """Quarantine preserves job timeout."""
 
         self.fq.quarantine(self.job, Exception('Some fake error'))
-        self.assertEquals(self.job.timeout, 200)
+        self.assertEqual(self.job.timeout, 200)
 
 
 class TestRequeue(TransactionTestCase):
@@ -222,8 +222,8 @@ class TestRequeue(TransactionTestCase):
 
     def test_requeue(self):
         self.fq.requeue(self.job.id)
-        self.assertEquals(self.fq.count, 0)
-        self.assertEquals(Queue('fake').count, 1)
+        self.assertEqual(self.fq.count, 0)
+        self.assertEqual(Queue('fake').count, 1)
 
 
 class TestAsyncFalse(TransactionTestCase):

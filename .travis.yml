@@ -4,6 +4,15 @@ install:
 cache:
       directories:
             - .tox
+env:
+      - TOXENV=py27-django16
+      - TOXENV=py27-django17
+      - TOXENV=py33-django16
+      - TOXENV=py33-django17
+      - TOXENV=py34-django16
+      - TOXENV=py34-django17
+      - TOXENV=pypy-django16
+      - TOXENV=pypy-django17
 addons:
       postgresql: "9.3"
 before_script:
