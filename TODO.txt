@@ -1,3 +1,2 @@
-- Setup tox for: py27, py33, py34, dj14, dj16, dj17
 - Merge pull requests from upstream
 - Investigate issues
