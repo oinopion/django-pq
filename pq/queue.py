@@ -361,7 +361,7 @@ class Queue(models.Model):
                     job, promise, timeout = Job._get_job_or_promise(
                         conn, q, timeout)
                 if job and job.repeat:
-                    self.enqueue_next(job)
+                    q.enqueue_next(job)
                 if job:
                     return job, q
             if burst:
