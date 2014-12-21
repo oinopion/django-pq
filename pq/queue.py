@@ -2,13 +2,12 @@ import logging
 import select
 from datetime import timedelta, datetime
 
-from dateutil.relativedelta import relativedelta
 from django.db import connections, DatabaseError
 from django.db import transaction
 from django.db import models
 from django.conf import settings
 from django.utils.timezone import now
-from six import string_types
+from django.utils.six import string_types
 
 from .job import Job
 from .utils import get_restricted_datetime

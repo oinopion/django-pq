@@ -11,7 +11,7 @@ import sys
 import logging
 from datetime import timedelta, datetime, time
 from dateutil import relativedelta
-from six import integer_types
+from django.utils.six import integer_types
 
 from .compat import is_python_version
 from .exceptions import InvalidBetween, InvalidWeekdays

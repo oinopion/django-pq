@@ -8,7 +8,7 @@ from picklefield.fields import PickledObjectField
 from django.db import models
 from django.db import transaction
 from django.utils.timezone import now
-from six import get_method_self, integer_types
+from django.utils.six import get_method_self, integer_types
 
 from .exceptions import InvalidInterval
 

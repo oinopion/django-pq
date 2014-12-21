@@ -1,6 +1,6 @@
 from functools import wraps
 
-from six import string_types
+from django.utils.six import string_types
 
 from .queue import Queue
 from .worker import PQ_DEFAULT_RESULT_TTL

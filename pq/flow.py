@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import models, transaction
 from django.utils.timezone import now
 from picklefield.fields import PickledObjectField
-from six import integer_types
+from django.utils.six import integer_types
 
 from .queue import Queue
 from .job import Job

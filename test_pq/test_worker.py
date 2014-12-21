@@ -1,6 +1,5 @@
 import os
 import time
-import times
 from datetime import datetime
 from django.test import TransactionTestCase, TestCase
 from django.utils.timezone import utc

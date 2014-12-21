@@ -69,16 +69,14 @@ setup(
     # List run-time dependencies here
     install_requires=[
         'django',
-        'times',
         'python-dateutil',
         'django-picklefield',
-        'six',
     ],
 
     # List additional groups of dependencies here (e.g. dev dependencies).
     # You can install these using the following syntax, for example:
-    # $ pip install -e .[dev,test]
+    # $ pip install -e .[dev]
     extras_require={
-        'test': ['tox'],
+        'dev': ['tox'],
     },
 )

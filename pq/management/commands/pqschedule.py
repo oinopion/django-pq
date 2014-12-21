@@ -1,12 +1,9 @@
 from django.core.management.base import BaseCommand
 from optparse import make_option
 
-from six import integer_types
+from django.utils.six import integer_types
 from dateutil import parser
-from django.conf import settings
 from django.utils.timezone import now, get_default_timezone
-
-from pq.queue import PQ_DEFAULT_JOB_TIMEOUT
 
 
 class Command(BaseCommand):

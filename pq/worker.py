@@ -16,20 +16,17 @@ import traceback
 import logging
 from datetime import timedelta
 
-from picklefield.fields import PickledObjectField
 from django.db import connections, models, transaction
 from django.conf import settings
 from django.utils.timezone import now
-from six import u
 
 from .queue import Queue as PQ
 from .queue import PQ_DEFAULT_JOB_TIMEOUT, get_failed_queue
 from .flow import Flow, FlowStore
 from .job import Job
 from .utils import make_colorizer
-from .exceptions import (NoQueueError, UnpickleError,
-                         DequeueTimeout, StopRequested,
-                         MulipleQueueConnectionsError)
+from .exceptions import NoQueueError, DequeueTimeout, StopRequested, \
+    MulipleQueueConnectionsError
 from .timeouts import death_penalty_after
 
 from . import __version__ as VERSION
