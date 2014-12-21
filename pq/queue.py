@@ -132,7 +132,7 @@ class Queue(models.Model):
 
     def delete_expired_ttl(self):
         """Delete jobs from the queue which have expired"""
-        with transaction.commit_on_success(using=self.connection):
+        with transaction.atomic(using=self.connection):
             Job.objects.using(self.connection).filter(
                 origin=self.name, status=Job.FINISHED, expired_at__lte=now()).delete()
 
@@ -294,7 +294,7 @@ class Queue(models.Model):
         Returns a Job instance, which can be executed or inspected.
         Does not respect serial queue locks
         """
-        with transaction.commit_on_success(using=self.connection):
+        with transaction.atomic(using=self.connection):
             try:
                 job = Job.objects.using(self.connection).select_for_update().filter(
                 queue=self, status=Job.QUEUED,
@@ -420,10 +420,10 @@ class SerialQueue(Queue):
 
     def acquire_lock(self, timeout=0, no_wait=True):
         try:
-            with transaction.commit_on_success(using=self.connection):
+            with transaction.atomic(using=self.connection):
                 SerialQueue.objects.using(
                     self.connection).select_for_update(
-                    no_wait=no_wait).get(
+                    nowait=no_wait).get(
                     name=self.name, lock_expires__lte=now())
                 if timeout:
                     self.lock_expires = now() + timedelta(seconds=timeout)
@@ -470,7 +470,7 @@ class FailedQueue(Queue):
 
     def requeue(self, job_id):
         """Requeues the job with the given job ID."""
-        with transaction.commit_on_success(self.connection):
+        with transaction.atomic(self.connection):
             job = Job.objects.using(self.connection).select_for_update().get(id=job_id)
             # Delete it from the failed queue (raise an error if that failed)
             job.queue = None

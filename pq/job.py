@@ -126,7 +126,7 @@ class Job(models.Model):
         at the timeout.
         """
         promise = None
-        with transaction.commit_on_success(using=conn):
+        with transaction.atomic(using=conn):
             try:
                 qs = cls.objects.using(conn).select_for_update().filter(
                     queue_id=queue.name)

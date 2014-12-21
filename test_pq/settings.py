@@ -17,10 +17,6 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'django-pq',
-        'USER': 'django-pq',
-        'PASSWORD': 'django-pq',
-        'HOST': '127.0.0.1',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': 5432,
         'OPTIONS': {'autocommit': True}
     },
 
@@ -40,24 +36,38 @@ SECRET_KEY = '1234'
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
-    'formatters': {
-        'standard': {
-            'format': '[%(levelname)s] %(name)s: %(message)s'
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
         },
     },
     'handlers': {
-        'console':{
-            'level':'DEBUG',
-            'class':"logging.StreamHandler",
-            'formatter': 'standard'
+        'console': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
+        'django': {
+            'handlers': ['console'],
+        },
+        'py.warnings': {
+            'handlers': ['console'],
+        },
         'pq': {
             'handlers': ['console'],
-            'level': os.getenv('LOGGING_LEVEL', 'CRITICAL'),
-            'propagate': True
         },
     }
 }
+
+
+MIDDLEWARE_CLASSES = (
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+)

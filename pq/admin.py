@@ -25,7 +25,7 @@ class FailedJobAdmin(admin.ModelAdmin):
         super(FailedJobAdmin, self).__init__(*args, **kwargs)
         self.list_display_links = (None, )
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         return self.model.objects.using(
             CONN).filter(queue__name='failed')
 
@@ -44,7 +44,7 @@ class QueuedJobAdmin(admin.ModelAdmin):
         self.list_display_links = (None, )
 
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         return self.model.objects.using(
             CONN).all().exclude(queue__name='failed').exclude(queue=None)
 
@@ -62,7 +62,7 @@ class ScheduledJobAdmin(admin.ModelAdmin):
         super(ScheduledJobAdmin, self).__init__(*args, **kwargs)
         self.list_display_links = (None, )
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         return self.model.objects.using(
             CONN).filter(status=0).exclude(queue__name='failed').exclude(queue=None)
 
@@ -87,7 +87,7 @@ class DequeuedJobAdmin(admin.ModelAdmin):
         super(DequeuedJobAdmin, self).__init__(*args, **kwargs)
         self.list_display_links = (None, )
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         return self.model.objects.using(CONN).filter(queue=None)
 
     def has_add_permission(self, request):

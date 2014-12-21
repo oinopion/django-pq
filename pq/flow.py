@@ -104,7 +104,7 @@ class FlowStore(models.Model):
     @classmethod
     def delete_expired_ttl(cls, connection):
         """Delete jobs from the queue which have expired"""
-        with transaction.commit_on_success(using=connection):
+        with transaction.atomic(using=connection):
             FlowStore.objects.using(connection).filter(
                status=FlowStore.FINISHED, expired_at__lte=now()).delete()
 

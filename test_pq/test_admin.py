@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.test import TestCase, TransactionTestCase
 from django.core.urlresolvers import reverse
+from django.utils.timezone import utc
 from django.contrib.auth.models import User
 
 from pq.job import (Job, FailedJob, DequeuedJob,
@@ -19,7 +20,7 @@ class TestJobAdmin(TransactionTestCase):
         self.q = Queue()
         self.q.enqueue_call(say_hello, args=('you',))
         self.q.enqueue_call(div_by_zero, args=(1,))
-        self.q.schedule(datetime(2099,1,1), say_hello, 'later')
+        self.q.schedule(datetime(2099, 1, 1, tzinfo=utc), say_hello, 'later')
         w = Worker.create(self.q)
         w.work(burst=True)
         self.q.enqueue_call(say_hello, args=('me',))
