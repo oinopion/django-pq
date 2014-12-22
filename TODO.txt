@@ -1,2 +1,2 @@
-- Merge pull requests from upstream
 - Investigate issues
+- Fix PEP-8 violations
