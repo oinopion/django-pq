@@ -7,12 +7,14 @@ from dateutil.relativedelta import weekdays as wdays
 from picklefield.fields import PickledObjectField
 from django.db import models
 from django.db import transaction
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from django.utils.six import get_method_self, integer_types
 
 from .exceptions import InvalidInterval
 
 
+@python_2_unicode_compatible
 class Job(models.Model):
 
     SCHEDULED = 0
@@ -61,7 +63,7 @@ class Job(models.Model):
     if_failed = models.CharField(max_length=64, null=True, blank=True)
     if_result = models.CharField(max_length=64, null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.get_call_string()
 
     @classmethod

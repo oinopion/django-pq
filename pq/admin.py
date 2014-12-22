@@ -16,7 +16,7 @@ def requeue_failed_jobs(modeladmin, request, queryset):
 requeue_failed_jobs.short_description = "Requeue selected jobs"
 
 class FailedJobAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'origin', 'exc_info', 'ended_at')
+    list_display = ('__str__', 'origin', 'exc_info', 'ended_at')
     list_filter = ('origin',)
     ordering = ('-id',)
     actions = [requeue_failed_jobs]
@@ -34,7 +34,7 @@ class FailedJobAdmin(admin.ModelAdmin):
 
 
 class QueuedJobAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'queue', 'timeout', 'enqueued_at',
+    list_display = ('__str__', 'queue', 'timeout', 'enqueued_at',
                     'scheduled_for', 'get_schedule_options',)
     list_filter = ('origin',)
     ordering = ('id', 'scheduled_for')
@@ -53,7 +53,7 @@ class QueuedJobAdmin(admin.ModelAdmin):
 
 
 class ScheduledJobAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'queue', 'timeout', 'enqueued_at',
+    list_display = ('__str__', 'queue', 'timeout', 'enqueued_at',
                     'scheduled_for', 'get_schedule_options',)
     list_filter = ('origin',)
     ordering = ('scheduled_for', )
@@ -78,7 +78,7 @@ requeue_jobs.short_description = "Requeue selected jobs"
 
 
 class DequeuedJobAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'origin', 'status', 'enqueued_at', 'ended_at')
+    list_display = ('__str__', 'origin', 'status', 'enqueued_at', 'ended_at')
     list_filter = ('origin', 'status')
     ordering = ('-enqueued_at',)
     actions = [requeue_jobs]

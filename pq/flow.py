@@ -3,6 +3,7 @@ import uuid
 
 from django.conf import settings
 from django.db import models, transaction
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from picklefield.fields import PickledObjectField
 from django.utils.six import integer_types
@@ -53,6 +54,7 @@ class FlowQueue(Queue):
         return job
 
 
+@python_2_unicode_compatible
 class FlowStore(models.Model):
     """Flow storage """
 
@@ -80,7 +82,7 @@ class FlowStore(models.Model):
         verbose_name_plural = 'flows'
 
 
-    def __unicode__(self):
+    def __str__(self):
         if self.id and self.name:
             return '%i - %s' % (self.id, self.name)
         elif self.id:

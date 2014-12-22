@@ -18,6 +18,7 @@ from datetime import timedelta
 
 from django.db import connections, models, transaction
 from django.conf import settings
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 
 from .queue import Queue as PQ
@@ -67,6 +68,7 @@ def close_connection():
             conn.close()
 
 
+@python_2_unicode_compatible
 class Worker(models.Model):
 
     name = models.CharField(max_length=254, primary_key=True)
@@ -76,7 +78,7 @@ class Worker(models.Model):
     stop = models.BooleanField(default=False, help_text="Send a stop signal to the worker")
     heartbeat = models.DateTimeField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @classmethod
