@@ -5,10 +5,10 @@ from django.utils.six import string_types
 from .queue import Queue
 from .worker import PQ_DEFAULT_RESULT_TTL
 
-class job(object):
 
+class job(object):
     def __init__(self, queue, connection='default', timeout=None,
-            result_ttl=PQ_DEFAULT_RESULT_TTL):
+                 result_ttl=PQ_DEFAULT_RESULT_TTL):
         """A decorator that adds a ``delay`` method to the decorated function,
         which in turn creates a RQ job when called. Accepts a required
         ``queue`` argument that can be either a ``Queue`` instance or a string
@@ -29,10 +29,17 @@ class job(object):
         @wraps(f)
         def delay(*args, **kwargs):
             if isinstance(self.queue, string_types):
-                queue = Queue.create(name=self.queue, connection=self.connection)
+                queue = Queue.create(
+                    name=self.queue, connection=self.connection)
             else:
                 queue = self.queue
-            return queue.enqueue_call(f, args=args, kwargs=kwargs,
-                    timeout=self.timeout, result_ttl=self.result_ttl)
+            return queue.enqueue_call(
+                f,
+                args=args,
+                kwargs=kwargs,
+                timeout=self.timeout,
+                result_ttl=self.result_ttl
+            )
+
         f.delay = delay
         return f

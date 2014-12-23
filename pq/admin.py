@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.conf import settings
-from django.db.models import F
 from .job import FailedJob, QueuedJob, DequeuedJob, ScheduledJob
 from .queue import FailedQueue
 from .flow import FlowStore
@@ -8,12 +7,16 @@ from .worker import Worker
 
 CONN = getattr(settings, 'PQ_ADMIN_CONNECTION', 'default')
 
+
 def requeue_failed_jobs(modeladmin, request, queryset):
     """Requeue selected failed jobs onto the origin queue"""
     fq = FailedQueue.create(CONN)
     for job in queryset:
         fq.requeue(job.id)
+
+
 requeue_failed_jobs.short_description = "Requeue selected jobs"
+
 
 class FailedJobAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'origin', 'exc_info', 'ended_at')
@@ -43,7 +46,6 @@ class QueuedJobAdmin(admin.ModelAdmin):
         super(QueuedJobAdmin, self).__init__(*args, **kwargs)
         self.list_display_links = (None, )
 
-
     def get_queryset(self, request):
         return self.model.objects.using(
             CONN).all().exclude(queue__name='failed').exclude(queue=None)
@@ -63,17 +65,20 @@ class ScheduledJobAdmin(admin.ModelAdmin):
         self.list_display_links = (None, )
 
     def get_queryset(self, request):
-        return self.model.objects.using(
-            CONN).filter(status=0).exclude(queue__name='failed').exclude(queue=None)
+        qs = self.model.objects.using(CONN).filter(status=0)
+        return qs.exclude(queue__name='failed', queue=None)
 
     def has_add_permission(self, request):
         return False
+
 
 def requeue_jobs(modeladmin, request, queryset):
     """Requeue selected jobs onto the origin queue"""
     fq = FailedQueue.create(CONN)
     for job in queryset:
         fq.requeue(job.id)
+
+
 requeue_jobs.short_description = "Requeue selected jobs"
 
 
@@ -95,8 +100,8 @@ class DequeuedJobAdmin(admin.ModelAdmin):
 
 
 class FlowAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'queue', 'enqueued_at', 'ended_at', 'status' )
-    list_filter = ('name', 'queue',)
+    list_display = ('id', 'name', 'queue', 'enqueued_at', 'ended_at', 'status')
+    list_filter = ('name', 'queue')
     ordering = ('id',)
 
     def __init__(self, *args, **kwargs):
@@ -108,8 +113,10 @@ class FlowAdmin(admin.ModelAdmin):
 
 
 class WorkerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'birth', 'expire', 'heartbeat', 'queue_names', 'stop')
-    list_editable = ('stop', )
+    list_display = (
+        'name', 'birth', 'expire', 'heartbeat', 'queue_names', 'stop'
+    )
+    list_editable = ('stop',)
     ordering = ('name',)
 
     def __init__(self, *args, **kwargs):
@@ -118,7 +125,6 @@ class WorkerAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
-
 
 
 admin.site.register(FailedJob, FailedJobAdmin)

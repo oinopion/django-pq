@@ -1,5 +1,5 @@
-from collections import OrderedDict
 import uuid
+from collections import OrderedDict
 
 from django.conf import settings
 from django.db import models, transaction
@@ -12,6 +12,7 @@ from .queue import Queue
 from .job import Job
 
 PQ_DEFAULT_JOB_TIMEOUT = getattr(settings, 'PQ_DEFAULT_JOB_TIMEOUT', 180)
+
 
 class FlowQueue(Queue):
     class Meta:
@@ -73,14 +74,13 @@ class FlowStore(models.Model):
     enqueued_at = models.DateTimeField(null=True, blank=True)
     ended_at = models.DateTimeField(null=True, blank=True)
     expired_at = models.DateTimeField('expires', null=True, blank=True)
-    status = models.PositiveIntegerField(null=True,
-            blank=True, choices=STATUS_CHOICES)
+    status = models.PositiveIntegerField(
+        null=True, blank=True, choices=STATUS_CHOICES)
     jobs = PickledObjectField(blank=True)
 
     class Meta:
-        verbose_name ='flow'
+        verbose_name = 'flow'
         verbose_name_plural = 'flows'
-
 
     def __str__(self):
         if self.id and self.name:
@@ -102,20 +102,22 @@ class FlowStore(models.Model):
     def schedule_call(self, *args, **kwargs):
         return self.queue.schedule_call(*args, **kwargs)
 
-
     @classmethod
     def delete_expired_ttl(cls, connection):
         """Delete jobs from the queue which have expired"""
         with transaction.atomic(using=connection):
-            FlowStore.objects.using(connection).filter(
-               status=FlowStore.FINISHED, expired_at__lte=now()).delete()
+            qs = FlowStore.objects.using(connection).filter(
+                status=FlowStore.FINISHED,
+                expired_at__lte=now(),
+            )
+            qs.delete()
 
     def save(self, *args, **kwargs):
         self.queue.save_queue()
         super(FlowStore, self).save(*args, **kwargs)
 
-class Flow(object):
 
+class Flow(object):
     def __init__(self, queue, name=''):
         queue = FlowQueue.create(name=queue.name)
         self.flowstore = FlowStore(name=name)
@@ -158,8 +160,6 @@ class Flow(object):
             return FlowStore.objects.get(pk=id_or_name)
         else:
             return FlowStore.objects.filter(name=id_or_name)
-
-
 
     @classmethod
     def handle_result(cls, job, queue):

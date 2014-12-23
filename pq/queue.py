@@ -12,14 +12,14 @@ from django.utils.six import string_types
 
 from .job import Job
 from .utils import get_restricted_datetime
-from .exceptions import (DequeueTimeout, InvalidBetween,
-                         InvalidInterval, InvalidQueueName)
+from .exceptions import DequeueTimeout, InvalidQueueName
 
 _PQ_QUEUES = {}
 PQ_DEFAULT_JOB_TIMEOUT = getattr(settings, 'PQ_DEFAULT_JOB_TIMEOUT', 600)
 PQ_QUEUE_CACHE = getattr(settings, 'PQ_QUEUE_CACHE', True)
 
 logger = logging.getLogger(__name__)
+
 
 def get_failed_queue(connection='default'):
     """Returns a handle to the special failed queue."""
@@ -30,6 +30,7 @@ class _EnqueueArgs(object):
     """Simple argument and keyword argument wrapper
         for enqueue and schedule queue methods
     """
+
     def __init__(self, *args, **kwargs):
         self.timeout = None
         self.result_ttl = None
@@ -37,7 +38,7 @@ class _EnqueueArgs(object):
         self.args = args
         self.kwargs = kwargs
         # Detect explicit invocations, i.e. of the form:
-        #  q.enqueue(foo, args=(1, 2), kwargs={'a': 1}, timeout=30)
+        # q.enqueue(foo, args=(1, 2), kwargs={'a': 1}, timeout=30)
         if 'args' in kwargs or 'kwargs' in kwargs:
             assert args == (), 'Extra positional arguments cannot be used when using explicit args and kwargs.'  # noqa
             self.result_ttl = kwargs.pop('result_ttl', None)
@@ -49,13 +50,12 @@ class _EnqueueArgs(object):
 
 @python_2_unicode_compatible
 class Queue(models.Model):
-
     connection = None
     name = models.CharField(max_length=100, primary_key=True, default='default')
     default_timeout = models.PositiveIntegerField(null=True, blank=True)
     cleaned = models.DateTimeField(null=True, blank=True)
-    scheduled = models.BooleanField(default=False,
-        help_text="Optimisation: scheduled tasks are slower.")
+    scheduled = models.BooleanField(
+        default=False, help_text="Optimisation: scheduled tasks are slower.")
     lock_expires = models.DateTimeField(default=now())
     serial = models.BooleanField(default=False)
     idempotent = models.BooleanField(default=False)
@@ -68,7 +68,8 @@ class Queue(models.Model):
     @classmethod
     def create(cls,
                name='default', default_timeout=None,
-               connection='default', scheduled=False, async=True, idempotent=False):
+               connection='default', scheduled=False, async=True,
+               idempotent=False):
         """Returns a Queue ready for accepting jobs"""
         queue = cls(name=cls.validated_name(name))
         queue.default_timeout = default_timeout or PQ_DEFAULT_JOB_TIMEOUT
@@ -107,8 +108,8 @@ class Queue(models.Model):
             q.default_timeout = self.default_timeout
             q.serial = self.serial
             q.idempotent = self.idempotent
-            # a queue remains a scheduled queue if prior scheduled jobs have been
-            # submitted to it
+            # a queue remains a scheduled queue if prior scheduled jobs have
+            # been submitted to it
             q.scheduled = True if self.scheduled else q.scheduled
             q.save()
             _PQ_QUEUES[self.name] = q
@@ -125,17 +126,20 @@ class Queue(models.Model):
 
         return allqs
 
-
     @property
     def count(self):
-        return Job.objects.using(self.connection).filter(queue_id=self.name).count()
-
+        qs = Job.objects.using(self.connection).filter(queue_id=self.name)
+        return qs.count()
 
     def delete_expired_ttl(self):
         """Delete jobs from the queue which have expired"""
         with transaction.atomic(using=self.connection):
-            Job.objects.using(self.connection).filter(
-                origin=self.name, status=Job.FINISHED, expired_at__lte=now()).delete()
+            qs = Job.objects.using(self.connection).filter(
+                origin=self.name,
+                status=Job.FINISHED,
+                expired_at__lte=now(),
+            )
+            qs.delete()
 
     def empty(self):
         """Delete all jobs from a queue"""
@@ -155,10 +159,15 @@ class Queue(models.Model):
             repeat = job.repeat - 1 if job.repeat > 0 else -1
         timeout = job.timeout
         scheduled_for = job.scheduled_for + job.interval
-        scheduled_for = get_restricted_datetime(scheduled_for, job.between, job.weekdays)
-        status = Job.SCHEDULED if scheduled_for > job.scheduled_for else Job.QUEUED
+        scheduled_for = get_restricted_datetime(
+            scheduled_for, job.between, job.weekdays)
+        if scheduled_for > job.scheduled_for:
+            status = Job.SCHEDULED
+        else:
+            status = Job.QUEUED
         self.save_queue()
-        job = Job.create(job.func, job.args, job.kwargs, connection=job.connection,
+        job = Job.create(job.func, job.args, job.kwargs,
+                         connection=job.connection,
                          result_ttl=job.result_ttl,
                          scheduled_for=scheduled_for,
                          repeat=repeat,
@@ -168,10 +177,10 @@ class Queue(models.Model):
                          status=status)
         return self.enqueue_job(job, timeout=timeout)
 
-
     def enqueue_call(self, func, args=None, kwargs=None,
-        timeout=None, result_ttl=None, async=True, at=None,
-        repeat=None, interval=0, between='', weekdays=None): #noqa
+                     timeout=None, result_ttl=None, async=True, at=None,
+                     repeat=None, interval=0, between='',
+                     weekdays=None):  # noqa
         """Creates a job to represent the delayed function call and enqueues
         it.
 
@@ -211,12 +220,12 @@ class Queue(models.Model):
         """
         if not isinstance(f, string_types) and f.__module__ == '__main__':
             raise ValueError(
-                    'Functions from the __main__ module cannot be processed '
-                    'by workers.')
+                'Functions from the __main__ module cannot be processed '
+                'by workers.')
         enq = _EnqueueArgs(*args, **kwargs)
 
         return self.enqueue_call(func=f, args=enq.args, kwargs=enq.kwargs,
-                                 timeout=enq.timeout, 
+                                 timeout=enq.timeout,
                                  result_ttl=enq.result_ttl,
                                  async=enq.async)
 
@@ -255,8 +264,8 @@ class Queue(models.Model):
 
         if not isinstance(f, string_types) and f.__module__ == '__main__':
             raise ValueError(
-                    'Functions from the __main__ module cannot be processed '
-                    'by workers.')
+                'Functions from the __main__ module cannot be processed '
+                'by workers.')
         enq = _EnqueueArgs(*args, **kwargs)
 
         return self.enqueue_call(func=f, args=enq.args, kwargs=enq.kwargs,
@@ -264,10 +273,9 @@ class Queue(models.Model):
                                  async=enq.async,
                                  at=at)
 
-
     def schedule_call(self, at, f, args=None, kwargs=None,
-        timeout=None, result_ttl=None, repeat=0, interval=0,
-        between='', weekdays=None):
+                      timeout=None, result_ttl=None, repeat=0, interval=0,
+                      between='', weekdays=None):
         """
         As per enqueue_call but with a datetime argument ``at`` first.
 
@@ -297,9 +305,13 @@ class Queue(models.Model):
         """
         with transaction.atomic(using=self.connection):
             try:
-                job = Job.objects.using(self.connection).select_for_update().filter(
-                queue=self, status=Job.QUEUED,
-                scheduled_for__lte=now()).order_by('scheduled_for')[0]
+                qs = Job.objects.using(self.connection).select_for_update()
+                qs = qs.filter(
+                    queue=self,
+                    status=Job.QUEUED,
+                    scheduled_for__lte=now(),
+                )
+                job = qs.order_by('scheduled_for')[0]
                 job.queue = None
                 job.save()
             except IndexError:
@@ -308,7 +320,6 @@ class Queue(models.Model):
             self.enqueue_next(job)
 
         return job
-
 
     @classmethod
     def _listen_for_jobs(cls, queue_names, connection_name, timeout):
@@ -319,12 +330,12 @@ class Queue(models.Model):
 
         while True:
             for notify in conn.notifies:
-                if not notify.channel in queue_names:
+                if notify.channel not in queue_names:
                     continue
                 elif notify.payload == 'stop':
                     raise DequeueTimeout(0)
                 conn.notifies.remove(notify)
-                logger.debug('Got job notification %s on queue %s'% (
+                logger.debug('Got job notification %s on queue %s' % (
                     notify.payload, notify.channel))
                 return notify.channel
             else:
@@ -386,7 +397,6 @@ class Queue(models.Model):
         # receive pg notify messages
         return conn.connection
 
-
     def notify(self, job_id):
         """Notify postgresql channel when a job is enqueued"""
         cursor = connections[self.connection].cursor()
@@ -405,10 +415,11 @@ class SerialQueue(Queue):
                name='serial', default_timeout=None,
                connection='default', scheduled=False, async=True):
         """Returns a Queue ready for accepting jobs"""
-        queue = super(SerialQueue, cls).create(name, 
-            default_timeout, connection, scheduled, async)
+        queue = super(SerialQueue, cls).create(name,
+                                               default_timeout, connection,
+                                               scheduled, async)
         if not queue.serial:
-            queue.serial=True
+            queue.serial = True
             queue.save()
         return queue
 
@@ -430,7 +441,8 @@ class SerialQueue(Queue):
                     self.lock_expires = now() + timedelta(seconds=timeout)
                     self.save()
         except DatabaseError:
-            logger.debug('%s SerialQueue currently locked on update' % self.name)
+            logger.debug(
+                '%s SerialQueue currently locked on update' % self.name)
             return False
         except SerialQueue.DoesNotExist:
             logger.debug('%s SerialQueue currently locked' % self.name)
@@ -468,11 +480,11 @@ class FailedQueue(Queue):
         job.exc_info = exc_info
         return self.enqueue_job(job, timeout=job.timeout, set_meta_data=False)
 
-
     def requeue(self, job_id):
         """Requeues the job with the given job ID."""
         with transaction.atomic(self.connection):
-            job = Job.objects.using(self.connection).select_for_update().get(id=job_id)
+            qs = Job.objects.using(self.connection).select_for_update()
+            job = qs.get(id=job_id)
             # Delete it from the failed queue (raise an error if that failed)
             job.queue = None
             job.status = Job.QUEUED

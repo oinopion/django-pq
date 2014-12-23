@@ -1,5 +1,6 @@
 try:
-    __version__ = __import__('pkg_resources').get_distribution('django-pq').version
+    import pkg_resources
+    __version__ = pkg_resources.get_distribution('django-pq').version
 except:
     __version__ = ''
 

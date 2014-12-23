@@ -1,7 +1,4 @@
-
 import time
-from datetime import datetime, timedelta
-from django.utils.timezone import utc, now
 from django.test import TestCase, TransactionTestCase
 
 from pq import Worker
@@ -11,16 +8,13 @@ from pq.exceptions import DequeueTimeout
 from .fixtures import do_nothing
 
 
-
 class TestSerialQueueCreate(TestCase):
-
     def test_serial_queue_create(self):
         sq = SerialQueue.create()
         self.assertTrue(sq.serial)
 
 
 class TestQueueCreationTwoQueueTypes(TestCase):
-
     def test_default_queue_create_multiple(self):
         queue = Queue.create()
         self.assertEqual(queue.name, 'default')
@@ -29,7 +23,6 @@ class TestQueueCreationTwoQueueTypes(TestCase):
 
 
 class TestSerialQueueMethods(TestCase):
-
     def setUp(self):
         self.sq = SerialQueue.create()
         self.sq.save()
@@ -40,7 +33,6 @@ class TestSerialQueueMethods(TestCase):
 
 
 class TestSerialQueueLock(TestCase):
-
     def setUp(self):
         self.sq = SerialQueue.create()
         self.sq.save()
@@ -54,9 +46,7 @@ class TestSerialQueueLock(TestCase):
         self.assertTrue(self.sq.acquire_lock())
 
 
-
 class TestDequeueAnySerialJobs(TestCase):
-
     def setUp(self):
         self.sq = SerialQueue.create()
         self.job = self.sq.enqueue(do_nothing)
@@ -67,7 +57,6 @@ class TestDequeueAnySerialJobs(TestCase):
 
 
 class TestDequeueAnyLockedSerialJobs(TestCase):
-
     def setUp(self):
         self.sq = SerialQueue.create()
         self.job = self.sq.enqueue(do_nothing)
@@ -80,7 +69,6 @@ class TestDequeueAnyLockedSerialJobs(TestCase):
 
 
 class TestDequeueLockExpiresSerialJobs(TestCase):
-
     def setUp(self):
         self.sq = SerialQueue.create()
         self.job = self.sq.enqueue(do_nothing)
@@ -94,7 +82,7 @@ class TestDequeueLockExpiresSerialJobs(TestCase):
 
 
 class TestQueueCreationConflictIssue2(TransactionTestCase):
-    "https://github.com/bretth/django-pq/issues/2"
+    """https://github.com/bretth/django-pq/issues/2"""
 
     def setUp(self):
         self.q = SerialQueue.create()

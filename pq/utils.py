@@ -21,11 +21,13 @@ def gettermsize():
     def ioctl_GWINSZ(fd):
         try:
             import fcntl, termios, struct  # noqa
-            cr = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ,
-        '1234'))
+
+            ioctl = fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234')
+            cr = struct.unpack('hh', ioctl)
         except:
             return None
         return cr
+
     cr = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
     if not cr:
         try:
@@ -41,6 +43,7 @@ def gettermsize():
             cr = (25, 80)
     return int(cr[1]), int(cr[0])
 
+
 def get_restricted_datetime(at, between='', weekdays=None):
     """
     Returns a new datetime that always falls in
@@ -54,21 +57,21 @@ def get_restricted_datetime(at, between='', weekdays=None):
     range the datetime will be moved forward to the next
     day.
 
-    >>> dt = datetime(2013,1,1,6,30)
+    >>> dt = datetime(2013, 1, 1, 6, 30)
     >>> get_restricted_datetime(dt, '7-12')
-    datetime(2013,1,1,7)
+    datetime(2013, 1, 1, 7)
     >>> get_restricted_datetime(dt, '1:00/6:00')
-    datetime(2013,1,2,1)
+    datetime(2013, 1, 2, 1)
     >>> get_restricted_datetime(dt, '1:00-6:00')
-    datetime(2013,1,2,1)
+    datetime(2013, 1, 2, 1)
     >>> get_restricted_datetime(dt, '1:00:10/6:00:59')
-    datetime(2013,1,2,1)
+    datetime(2013, 1, 2, 1)
     """
     if between:
         pattern = re.compile(
             r"(\d{1,2})[:.]?(\d{0,2})[:.]?\d{0,2}\s*[/-]+" +
             r"\s*(\d{1,2})[:.]?(\d{0,2})[:.]?\d{0,2}"
-            )
+        )
         r = pattern.search(between)
         if not r:
             raise InvalidBetween("Invalid between range %s" % between)
@@ -97,12 +100,12 @@ def get_restricted_datetime(at, between='', weekdays=None):
         for i, value in enumerate(weekdays):
             if isinstance(value, relativedelta.weekday):
                 weekdays[i] = value.weekday
-            elif isinstance(value, integer_types) and value >=0 and value <=6:
+            elif isinstance(value, integer_types) and (0 <= value <= 6):
                 continue
             else:
                 msg = "Invalid weekday %s. Weekdays must be a" % str(value)
                 msg = ' '.join([msg, "list or tuple of relativedelta.weekday",
-                               "instances or integers between 0 and 6"])
+                                "instances or integers between 0 and 6"])
                 raise InvalidWeekdays(msg)
         weekdays = sorted(weekdays)
         nextdays = relativedelta.weekdays[at.weekday():]
@@ -129,10 +132,14 @@ class _Colorizer(object):
         self.codes["blink"] = esc + "05m"
         self.codes["overline"] = esc + "06m"
 
-        dark_colors = ["black", "darkred", "darkgreen", "brown", "darkblue",
-                        "purple", "teal", "lightgray"]
-        light_colors = ["darkgray", "red", "green", "yellow", "blue",
-                        "fuchsia", "turquoise", "white"]
+        dark_colors = [
+            "black", "darkred", "darkgreen", "brown", "darkblue",
+            "purple", "teal", "lightgray",
+        ]
+        light_colors = [
+            "darkgray", "red", "green", "yellow", "blue",
+            "fuchsia", "turquoise", "white",
+        ]
 
         x = 30
         for d, l in zip(dark_colors, light_colors):
@@ -147,7 +154,6 @@ class _Colorizer(object):
         self.codes["fuscia"] = self.codes["fuchsia"]
         self.codes["white"] = self.codes["bold"]
         self.notty = not sys.stdout.isatty()
-
 
     def reset_color(self):
         return self.codes["reset"]
@@ -198,13 +204,14 @@ def make_colorizer(color):
 
         print "It's either " + green('OK') + ' or ' + red('Oops')
     """
+
     def inner(text):
         return colorizer.colorize(color, text)
+
     return inner
 
 
 class ColorizingStreamHandler(logging.StreamHandler):
-
     levels = {
         logging.WARNING: make_colorizer('darkyellow'),
         logging.ERROR: make_colorizer('darkred'),
@@ -213,7 +220,7 @@ class ColorizingStreamHandler(logging.StreamHandler):
 
     def __init__(self, exclude=None, *args, **kwargs):
         self.exclude = exclude
-        if is_python_version((2,6)):
+        if is_python_version((2, 6)):
             logging.StreamHandler.__init__(self, *args, **kwargs)
         else:
             super(ColorizingStreamHandler, self).__init__(*args, **kwargs)
@@ -230,11 +237,14 @@ class ColorizingStreamHandler(logging.StreamHandler):
 
             # Don't colorize any traceback
             parts = message.split('\n', 1)
-            parts[0] = " ".join([parts[0].split(" ", 1)[0], colorize(parts[0].split(" ", 1)[1])])
+            parts[0] = " ".join([
+                parts[0].split(" ", 1)[0], colorize(parts[0].split(" ", 1)[1])
+            ])
 
             message = '\n'.join(parts)
 
         return message
+
 
 def test_job():
     """ A simple do nothing test job """

@@ -1,17 +1,19 @@
 import os
+
 try:
     from psycopg2cffi import compat
+
     compat.register()
 except ImportError:
     pass
 
-DEBUG=True
-TEMPLATE=DEBUG
+DEBUG = True
+TEMPLATE = DEBUG
 USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 SOUTH_TESTS_MIGRATE = False
-PQ_QUEUE_CACHE = False # switch off for tests
+PQ_QUEUE_CACHE = False  # switch off for tests
 
 DATABASES = {
     'default': {
@@ -31,7 +33,7 @@ INSTALLED_APPS = (
 if os.getenv('SOUTH'):
     INSTALLED_APPS += ('south', )
 
-ROOT_URLCONF='test_pq.urls'
+ROOT_URLCONF = 'test_pq.urls'
 SECRET_KEY = '1234'
 
 LOGGING = {
@@ -61,7 +63,6 @@ LOGGING = {
         },
     }
 }
-
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

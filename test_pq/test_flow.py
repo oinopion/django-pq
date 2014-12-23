@@ -1,8 +1,5 @@
 import time
-from datetime import datetime, timedelta
 from django.test import TestCase, TransactionTestCase
-from django.test.utils import override_settings
-from django.utils.timezone import now
 
 from pq.flow import Flow, FlowStore
 from pq import Queue, Worker
@@ -10,8 +7,8 @@ from pq.queue import FailedQueue
 from pq.job import Job
 from .fixtures import say_hello, do_nothing, some_calculation
 
-class TestFlowCreate(TestCase):
 
+class TestFlowCreate(TestCase):
     def setUp(self):
         self.q = Queue()
 
@@ -37,7 +34,6 @@ class TestFlowCreate(TestCase):
 
 
 class TestFlowPerform(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
         self.w = Worker(self.q)
@@ -55,7 +51,6 @@ class TestFlowPerform(TransactionTestCase):
 
 
 class TestFlowStore(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
         self.w = Worker(self.q)
@@ -64,7 +59,6 @@ class TestFlowStore(TransactionTestCase):
             self.n_job = f.enqueue(do_nothing)
 
     def test_flowstore(self):
-
         fs = FlowStore.objects.get(name='test')
         j1 = Job.objects.get(pk=self.job.id)
         self.assertEqual(len(fs.jobs), 2)
@@ -83,7 +77,6 @@ class TestFlowStore(TransactionTestCase):
 
 
 class TestFlowStoreExpiredTTL(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
         self.w = Worker(self.q, default_result_ttl=1)
@@ -100,10 +93,14 @@ class TestFlowStoreExpiredTTL(TransactionTestCase):
 
 
 class TestFlowStoreExpiredTTLOnDequeue(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
-        self.w = Worker(self.q, default_result_ttl=1, default_worker_ttl=2.1, expires_after=1)
+        self.w = Worker(
+            self.q,
+            default_result_ttl=1,
+            default_worker_ttl=2.1,
+            expires_after=1
+        )
         with Flow(self.q, name='test') as f:
             self.n_job = f.enqueue(do_nothing)
 
@@ -114,7 +111,6 @@ class TestFlowStoreExpiredTTLOnDequeue(TransactionTestCase):
 
 
 class TestFlowStoreFailed(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
         self.w = Worker(self.q)
@@ -124,7 +120,6 @@ class TestFlowStoreFailed(TransactionTestCase):
             self.n_job = f.enqueue(do_nothing)
 
     def test_flowstore_failed(self):
-
         fs = FlowStore.objects.get(name='test')
         self.w.work(burst=True)
 

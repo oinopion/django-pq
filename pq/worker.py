@@ -47,9 +47,12 @@ logger = logging.getLogger(__name__)
 def iterable(x):
     return hasattr(x, '__iter__')
 
-_signames = dict((getattr(signal, signame), signame) \
-                    for signame in dir(signal) \
-                    if signame.startswith('SIG') and '_' not in signame)
+_signames = {
+    getattr(signal, signame): signame
+    for signame in dir(signal)
+    if signame.startswith('SIG') and '_' not in signame
+}
+
 
 def signal_name(signum):
     # Hackety-hack-hack: is there really no better way to reverse lookup the
@@ -58,6 +61,7 @@ def signal_name(signum):
         return _signames[signum]
     except KeyError:
         return 'SIG_UNKNOWN'
+
 
 def close_connection():
     # Hackety-hack-hack for django_postgrespool
@@ -75,7 +79,10 @@ class Worker(models.Model):
     birth = models.DateTimeField(null=True, blank=True)
     expire = models.PositiveIntegerField('Polling TTL', null=True, blank=True)
     queue_names = models.CharField(max_length=254, null=True, blank=True)
-    stop = models.BooleanField(default=False, help_text="Send a stop signal to the worker")
+    stop = models.BooleanField(
+        default=False,
+        help_text="Send a stop signal to the worker"
+    )
     heartbeat = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
@@ -106,7 +113,8 @@ class Worker(models.Model):
         w._exc_handlers = []
         w.default_result_ttl = default_result_ttl
         w.default_worker_ttl = default_worker_ttl
-        # To save overhead we don't persist state - but we may change this behaviour.
+        # To save overhead we don't persist state - but we may change this
+        # behaviour.
         w.state = 'starting'
         w._is_horse = False
         w._horse_pid = 0
@@ -124,7 +132,6 @@ class Worker(models.Model):
             w.push_exc_handler(exc_handler)
         return w
 
-
     def validate_queues(self):  # noqa
         """Sanity check for the given queues."""
         if not iterable(self.queues):
@@ -136,14 +143,13 @@ class Worker(models.Model):
             if not isinstance(queue, PQ):
                 raise NoQueueError('%s is not a valid Queue.' % str(queue))
             elif connection and queue.connection != connection:
-                raise MulipleQueueConnectionsError("A worker's queues must use the same connection")
+                msg = "A worker's queues must use the same connection"
+                raise MulipleQueueConnectionsError(msg)
             connection = queue.connection
-
 
     def get_queue_names(self):
         """Returns the queue names of this worker's queues."""
         return map(lambda q: q.name, self.queues)
-
 
     def set_queues(self, addqueues):
         self._queues = addqueues
@@ -161,12 +167,10 @@ class Worker(models.Model):
         By default, the name of the worker is constructed from the current
         (short) host name and the current PID.
         """
-        #if self._name is None:
         hostname = socket.gethostname()
         shortname, _, _ = hostname.partition('.')
         name = '%s.%s' % (shortname, self.pid)
         return name
-
 
     @property
     def pid(self):
@@ -192,15 +196,17 @@ class Worker(models.Model):
         """
         setprocname('pq: %s' % (message,))
 
-
     def register_birth(self):  # noqa
         """Registers its own birth, saving to Postgres"""
-        self.log.debug('Registering birth of worker %s' % (self.calculated_name,))
+        self.log.debug('Registering birth of worker %s' % self.calculated_name)
         with transaction.atomic(using=self.connection):
-            if Worker.objects.using(self.connection).filter(name=self.calculated_name)[:]:
+            qs = Worker.objects.using(self.connection)
+            qs = qs.filter(name=self.calculated_name)
+            if qs.exists():
                 raise ValueError(
-                        'There exists an active worker named \'%s\' '
-                        'already.' % (self.calculated_name,))
+                    'There exists an active worker named \'%s\' '
+                    'already.' % (self.calculated_name,)
+                )
             self.name = self.calculated_name
             self.birth = now()
             self.queue_names = ','.join(self.get_queue_names())
@@ -228,7 +234,8 @@ class Worker(models.Model):
 
     @property
     def stopped(self):
-        if not self._stopped and Worker.objects.filter(name=self.name, stop=True):
+        qs = Worker.objects.filter(name=self.name, stop=True)
+        if not self._stopped and qs:
             self._stopped = True
         return self._stopped
 
@@ -278,7 +285,6 @@ class Worker(models.Model):
         signal.signal(signal.SIGINT, request_stop)
         signal.signal(signal.SIGTERM, request_stop)
 
-
     def work(self, burst=False):  # noqa
         """Starts the work loop.
 
@@ -305,8 +311,8 @@ class Worker(models.Model):
                 qnames = self.get_queue_names()
                 self.procline('Listening on %s' % ','.join(qnames))
                 self.log.info('')
-                self.log.info('*** Listening on %s...' % \
-                        green(', '.join(qnames)))
+                self.log.info(
+                    '*** Listening on %s...' % green(', '.join(qnames)))
                 timeout = None if burst else max(1, self.default_worker_ttl)
                 try:
                     result = self.dequeue_job_and_maintain_ttl(timeout)
@@ -320,8 +326,11 @@ class Worker(models.Model):
 
                 job, queue = result
                 self.register_heartbeat(job.timeout or PQ_DEFAULT_JOB_TIMEOUT)
-                self.log.info('%s: %s (%s)' % (green(queue.name),
-                    blue(job.description), job.id))
+                self.log.info('%s: %s (%s)' % (
+                    green(queue.name),
+                    blue(job.description),
+                    job.id
+                ))
                 close_connection()
                 self.fork_and_perform_job(job)
                 did_perform_work = True
@@ -335,7 +344,7 @@ class Worker(models.Model):
         """Helper function to control the loop in tests"""
         if Worker.objects.filter(name=self.name, stop=True):
             raise StopRequested
-        elif self._expires_after == None:
+        elif self._expires_after is None:
             return True
         elif self._expires_after < 0:
             raise StopRequested
@@ -358,7 +367,6 @@ class Worker(models.Model):
                         q.delete_expired_ttl()
                     FlowStore.delete_expired_ttl(q.connection)
                     self._clear_expired = now()
-
 
     def fork_and_perform_job(self, job):
         """Spawns a work horse to perform the actual work and passes it a job.
@@ -417,7 +425,7 @@ class Worker(models.Model):
             job.func_name,
             job.origin, time.time()))
 
-               # do it this way to avoid the extra sql call through job
+        # do it this way to avoid the extra sql call through job
         for q in self.queues:
             if q.name == job.queue_id:
                 break
@@ -467,16 +475,17 @@ class Worker(models.Model):
         elif job.result_ttl > 0:
             self.log.info('Result is kept for %d seconds.' % job.result_ttl)
         else:
-            self.log.warning('Result will never expire, clean up result key manually.')
+            self.log.warning(
+                'Result will never expire, clean up result key manually.')
 
         return True
-
 
     def handle_exception(self, job, *exc_info):
         """Walks the exception handler stack to delegate exception handling."""
         exc_string = ''.join(
-                traceback.format_exception_only(*exc_info[:2]) +
-                traceback.format_exception(*exc_info))
+            traceback.format_exception_only(*exc_info[:2]) +
+            traceback.format_exception(*exc_info)
+        )
         self.log.error(exc_string)
 
         for handler in reversed(self._exc_handlers):
@@ -507,7 +516,8 @@ class Worker(models.Model):
 
     def save(self, *args, **kwargs):
         timeout = kwargs.pop('timeout', PQ_DEFAULT_JOB_TIMEOUT)
-        self.heartbeat = now() + timedelta(seconds=timeout+PQ_DEFAULT_WORKER_TTL)
+        seconds = timeout + PQ_DEFAULT_WORKER_TTL
+        self.heartbeat = now() + timedelta(seconds=seconds)
         if self.stop:
             for q in self.queue_names.split(','):
                 PQ.objects.get(name=q).notify('stop')

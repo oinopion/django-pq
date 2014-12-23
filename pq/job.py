@@ -16,7 +16,6 @@ from .exceptions import InvalidInterval
 
 @python_2_unicode_compatible
 class Job(models.Model):
-
     SCHEDULED = 0
     QUEUED = 1
     FINISHED = 2
@@ -43,14 +42,17 @@ class Job(models.Model):
     kwargs = PickledObjectField(blank=True)
     description = models.CharField(max_length=254)
     result_ttl = models.IntegerField(null=True, blank=True)
-    status = models.PositiveIntegerField(null=True,
-            blank=True, choices=STATUS_CHOICES)
+    status = models.PositiveIntegerField(
+        null=True, blank=True, choices=STATUS_CHOICES)
     enqueued_at = models.DateTimeField(null=True, blank=True)
     scheduled_for = models.DateTimeField()
-    repeat = PickledObjectField(null=True, blank=True,
-            help_text="Number of times to repeat. -1 for forever.")
-    interval = PickledObjectField(null=True, blank=True,
-            help_text="Timedelta till next job")
+    repeat = PickledObjectField(
+        null=True,
+        blank=True,
+        help_text="Number of times to repeat. -1 for forever."
+    )
+    interval = PickledObjectField(
+        null=True, blank=True, help_text="Timedelta till next job")
     between = models.CharField(max_length=5, null=True, blank=True)
     weekdays = PickledObjectField(blank=True, null=True)
     ended_at = models.DateTimeField(null=True, blank=True)
@@ -107,11 +109,10 @@ class Job(models.Model):
         return job
 
     def clean(self):
+        is_delta = isinstance(self.interval, (timedelta, relativedelta))
         if isinstance(self.interval, int) and self.interval >= 0:
-                self.interval = relativedelta(seconds=self.interval)
-        elif self.scheduled_for and not (
-                isinstance(self.interval, timedelta) or
-                isinstance(self.interval, relativedelta)):
+            self.interval = relativedelta(seconds=self.interval)
+        elif self.scheduled_for and not is_delta:
             raise InvalidInterval(
                 "Interval must be a positive integer,"
                 " timedelta, or relativedelta instance")
@@ -171,7 +172,6 @@ class Job(models.Model):
         module = importlib.import_module(module_name)
         return getattr(module, func_name)
 
-
     def get_schedule_options(self):
         """Humanized schedule options"""
         s = []
@@ -182,10 +182,8 @@ class Job(models.Model):
         elif isinstance(self.repeat, datetime):
             s.append('repeat until %s,' % self.repeat.isoformat()[:16])
 
-        if self.interval and \
-            (isinstance(self.interval, relativedelta) or \
-            isinstance(self.interval, timedelta)) \
-            and self.interval.seconds > 0:
+        is_delta = isinstance(self.interval, (relativedelta, timedelta))
+        if is_delta and self.interval.seconds > 0:
             s.append('every %s' % str(self.interval))
 
         if self.between:
@@ -204,8 +202,8 @@ class Job(models.Model):
             first_letter = s[0].capitalize()
             s = first_letter + s[1:]
             return s
-    get_schedule_options.short_description = 'schedule options'
 
+    get_schedule_options.short_description = 'schedule options'
 
     def get_ttl(self, default_ttl=None):
         """Returns ttl for a job that determines how long a job and its result

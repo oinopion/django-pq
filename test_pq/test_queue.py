@@ -1,6 +1,6 @@
 import time
 import multiprocessing
-from datetime import datetime, timedelta
+from datetime import datetime
 from django.utils.timezone import utc, now
 from django.test import TestCase, TransactionTestCase
 
@@ -11,28 +11,23 @@ from pq.job import Job
 from pq.worker import Worker
 from pq.exceptions import DequeueTimeout, InvalidQueueName
 
-
-from .fixtures import (say_hello, Calculator,
-    div_by_zero, some_calculation, do_nothing)
-
+from .fixtures import say_hello, Calculator, div_by_zero, some_calculation, \
+    do_nothing
 
 
 class TestQueueCreation(TestCase):
-
     def test_default_queue_create(self):
         queue = Queue()
         self.assertEqual(queue.name, 'default')
 
 
 class TestQueueNameValidation(TestCase):
-
     def test_validated_name(self):
         with self.assertRaises(InvalidQueueName):
             PQ.validated_name('failed')
 
 
 class TestQueueInstanceMethods(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
 
@@ -45,12 +40,14 @@ class TestQueueInstanceMethods(TransactionTestCase):
 
 
 class TestEnqueue(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
         self.q.save()
-        self.job = Job.create(func=say_hello, args=('Nick',), kwargs=dict(foo='bar'))
-
+        self.job = Job.create(
+            func=say_hello,
+            args=('Nick',),
+            kwargs=dict(foo='bar')
+        )
 
     def test_enqueue_sets_metadata(self):
         """Enqueueing job onto queues modifies meta data."""
@@ -68,7 +65,6 @@ class TestEnqueue(TransactionTestCase):
 
 
 class TestDequeueOnEmpty(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
 
@@ -78,12 +74,11 @@ class TestDequeueOnEmpty(TransactionTestCase):
 
 
 class TestDequeue(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
         self.result = self.q.enqueue(say_hello, 'Rick', foo='bar')
-        #self.result2 = q.enqueue(c.calculate, 3, 4)
-        #self.c = Calculator(2)
+        # self.result2 = q.enqueue(c.calculate, 3, 4)
+        # self.c = Calculator(2)
 
     def test_dequeue(self):
         """Dequeueing jobs from queues."""
@@ -102,12 +97,10 @@ class TestDequeue(TransactionTestCase):
 
 
 class TestDequeueInstanceMethods(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
         self.c = Calculator(2)
         self.result = self.q.enqueue(self.c.calculate, 3, 4)
-
 
     def test_dequeue_instance_method(self):
         """Dequeueing instance method jobs from queues."""
@@ -119,7 +112,6 @@ class TestDequeueInstanceMethods(TransactionTestCase):
 
 
 class TestDequeueAnyEmpty(TransactionTestCase):
-
     def setUp(self):
         self.fooq = Queue('foo')
         self.barq = Queue('bar')
@@ -131,7 +123,6 @@ class TestDequeueAnyEmpty(TransactionTestCase):
 
 
 class TestDequeueAnySingle(TransactionTestCase):
-
     def setUp(self):
         self.fooq = Queue('foo')
         self.barq = Queue('bar')
@@ -139,14 +130,12 @@ class TestDequeueAnySingle(TransactionTestCase):
         self.barq.enqueue(say_hello)
 
     def test_dequeue_any_single(self):
-
         job, queue = PQ.dequeue_any([self.fooq, self.barq], None)
         self.assertEqual(job.func, say_hello)
         self.assertEqual(queue, self.barq)
 
 
 class TestDequeueAnyMultiple(TransactionTestCase):
-
     def setUp(self):
         self.fooq = Queue('foo')
         self.barq = Queue('bar')
@@ -155,20 +144,19 @@ class TestDequeueAnyMultiple(TransactionTestCase):
         self.fooq.enqueue(say_hello, 'for Foo')
 
     def test_dequeue_any_multiple(self):
-
         job, queue = PQ.dequeue_any([self.fooq, self.barq], None)
         self.assertEqual(queue, self.fooq)
         self.assertEqual(job.func, say_hello)
         self.assertEqual(job.origin, self.fooq.name)
-        self.assertEqual(job.args[0], 'for Foo',
-                'Foo should be dequeued first.')
+        self.assertEqual(
+            job.args[0], 'for Foo', 'Foo should be dequeued first.')
 
         job, queue = PQ.dequeue_any([self.fooq, self.barq], None)
         self.assertEqual(queue, self.barq)
         self.assertEqual(job.func, say_hello)
         self.assertEqual(job.origin, self.barq.name)
-        self.assertEqual(job.args[0], 'for Bar',
-                'Bar should be dequeued second.')
+        self.assertEqual(
+            job.args[0], 'for Bar', 'Bar should be dequeued second.')
 
 
 class TestGetFailedQueue(TransactionTestCase):
@@ -178,7 +166,6 @@ class TestGetFailedQueue(TransactionTestCase):
 
 
 class TestFQueueQuarantine(TransactionTestCase):
-
     def setUp(self):
         job = Job.create(func=div_by_zero, args=(1, 2, 3))
         job.origin = 'fake'
@@ -188,13 +175,13 @@ class TestFQueueQuarantine(TransactionTestCase):
     def test_quarantine_job(self):
         """Requeueing existing jobs."""
 
-        get_failed_queue().quarantine(self.job, Exception('Some fake error'))  # noqa
+        get_failed_queue().quarantine(
+            self.job, Exception('Some fake error'))  # noqa
         self.assertEqual(sorted(PQ.all()), sorted([get_failed_queue()]))  # noqa
         self.assertEqual(get_failed_queue().count, 1)
 
 
 class TestFQueueQuarantineTimeout(TransactionTestCase):
-
     def setUp(self):
         job = Job.create(func=div_by_zero, args=(1, 2, 3))
         job.origin = 'fake'
@@ -211,7 +198,6 @@ class TestFQueueQuarantineTimeout(TransactionTestCase):
 
 
 class TestRequeue(TransactionTestCase):
-
     def setUp(self):
         Queue('fake').save()
         job = Job.create(func=div_by_zero, args=(1, 2, 3))
@@ -228,10 +214,10 @@ class TestRequeue(TransactionTestCase):
 
 class TestAsyncFalse(TransactionTestCase):
     def test_async_false(self):
-     """Executes a job immediately if async=False."""
-     q = Queue(async=False)
-     job = q.enqueue(some_calculation, args=(2, 3))
-     self.assertEqual(job.result, 6)
+        """Executes a job immediately if async=False."""
+        q = Queue(async=False)
+        job = q.enqueue(some_calculation, args=(2, 3))
+        self.assertEqual(job.result, 6)
 
 
 class TestEnqueueAsyncFalse(TestCase):
@@ -251,16 +237,17 @@ class TestEnqueueAsyncFalse(TestCase):
         self.assertEqual(job.result, 6)
 
 
-
 class TestDeleteExpiredTTL(TransactionTestCase):
     def setUp(self):
         q = Queue()
-        q.enqueue(say_hello, kwargs={'name':'bob'}, result_ttl=1)  # expires
-        q.enqueue(say_hello, kwargs={'name':'polly'})  # won't expire in this test lifecycle
-        q.enqueue(say_hello, kwargs={'name':'frank'}, result_ttl=-1) # never expires
+        q.enqueue(say_hello, kwargs={'name': 'bob'}, result_ttl=1)  # expires
+        q.enqueue(say_hello, kwargs={
+            'name': 'polly'})  # won't expire in this test lifecycle
+        q.enqueue(say_hello, kwargs={'name': 'frank'},
+                  result_ttl=-1)  # never expires
         w = Worker.create([q])
         w.work(burst=True)
-        q.enqueue(say_hello, kwargs={'name':'david'}) # hasn't run yet
+        q.enqueue(say_hello, kwargs={'name': 'david'})  # hasn't run yet
         self.q = q
 
     def test_delete_expired_ttl(self):
@@ -281,12 +268,12 @@ class TestDequeueTimeout(TransactionTestCase):
 
 
 class TestListen(TransactionTestCase):
-
     def test_listen(self):
         """Postgresql LISTEN on channel with default connection"""
 
         conn = PQ.listen('default', ['default'])
         self.assertIsNotNone(conn)
+
 
 class TestNotify(TransactionTestCase):
     def setUp(self):
@@ -314,16 +301,17 @@ class TestListenForJobs(TransactionTestCase):
 
 
 class TestListenForJobsSelect(TransactionTestCase):
-
     def setUp(self):
         # We'll have to simulate the notify method since there are issues with
         # sharing database connections with the additional process
         def fake_job():
             import psycopg2
             import psycopg2.extensions
+
             time.sleep(1)
             conn = psycopg2.connect("dbname=test_django-pq")
-            conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+            conn.set_isolation_level(
+                psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
             curs = conn.cursor()
             # fake notifying a job_id 2 has been enqueued on the farq
@@ -331,7 +319,6 @@ class TestListenForJobsSelect(TransactionTestCase):
 
         p = multiprocessing.Process(target=fake_job)
         p.start()
-
 
     def test_listen_for_jobs_select(self):
         """Test the 2nd part of the _listen_for_jobs method which
@@ -341,7 +328,6 @@ class TestListenForJobsSelect(TransactionTestCase):
 
 
 class TestScheduleJobs(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue(scheduled=True)
         self.w = Worker.create([self.q])
@@ -355,20 +341,23 @@ class TestScheduleJobs(TransactionTestCase):
 
     def test_schedule_future_call(self):
         """Schedule to fire in the distant future"""
-        job = self.q.schedule_call(datetime(2999,12,1, tzinfo=utc), do_nothing)
+        job = self.q.schedule_call(
+            datetime(2999, 12, 1, tzinfo=utc), do_nothing)
         self.w.work(burst=True)
         # check it is still in the queue
         self.assertIsNotNone(Job.objects.get(queue_id='default', pk=job.id))
 
-class TestEnqueueNext(TransactionTestCase):
 
+class TestEnqueueNext(TransactionTestCase):
     def setUp(self):
         self.q = Queue()
-        self.job = Job.create(func=some_calculation,
+        self.job = Job.create(
+            func=some_calculation,
             args=(3, 4),
             kwargs=dict(z=2),
             repeat=1,
-            interval=60)
+            interval=60
+        )
         self.job.save()
 
     def test_enqueue_next(self):
@@ -376,8 +365,8 @@ class TestEnqueueNext(TransactionTestCase):
         job = self.q.enqueue_next(self.job)
         self.assertIsNotNone(job.id)
         self.assertNotEqual(job.id, self.job.id)
-        self.assertEqual(job.scheduled_for,
-            self.job.scheduled_for + self.job.interval)
+        self.assertEqual(
+            job.scheduled_for, self.job.scheduled_for + self.job.interval)
 
     def test_schedule_repeat_infinity(self):
         """Schedule repeats for infinity"""
@@ -389,7 +378,7 @@ class TestEnqueueNext(TransactionTestCase):
 
     def test_schedule_repeat_until(self):
         """Schedule repeat until datetime"""
-        self.job.repeat = datetime(2999,1,1, tzinfo=utc)
+        self.job.repeat = datetime(2999, 1, 1, tzinfo=utc)
         job = self.q.enqueue_next(self.job)
         self.assertIsNotNone(job.id)
         self.assertNotEqual(job.id, self.job.id)

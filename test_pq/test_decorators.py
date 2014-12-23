@@ -1,17 +1,13 @@
 from django.test import TransactionTestCase
 
-
 from pq.decorators import job
 from pq.job import Job
 from pq.worker import PQ_DEFAULT_RESULT_TTL
 
 from .fixtures import decorated_job
 
+
 class TestDecorator(TransactionTestCase):
-
-    def setUp(self):
-        pass
-
     def test_decorator_preserves_functionality(self):
         """Ensure that a decorated function's functionality is still preserved.
         """
@@ -31,9 +27,11 @@ class TestDecorator(TransactionTestCase):
         """Ensure that passing in queue name to the decorator puts the job in
         the right queue.
         """
+
         @job(queue='queue_name')
         def hello():
             return 'Hi'
+
         result = hello.delay()
         self.assertEqual(result.origin, 'queue_name')
 
@@ -41,12 +39,13 @@ class TestDecorator(TransactionTestCase):
         """Ensure that passing in result_ttl to the decorator sets the
         result_ttl on the job
         """
-        #Ensure default
+        # Ensure default
         result = decorated_job.delay(1, 2)
         self.assertEqual(result.result_ttl, PQ_DEFAULT_RESULT_TTL)
 
         @job('default', result_ttl=10)
         def hello():
             return 'Why hello'
+
         result = hello.delay()
         self.assertEqual(result.result_ttl, 10)

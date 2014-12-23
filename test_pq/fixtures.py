@@ -1,6 +1,6 @@
 """
 This file contains all jobs that are used in tests.  Each of these test
-fixtures has a slighty different characteristics.
+fixtures has a slightly different characteristics.
 """
 import time
 from pq.decorators import job
@@ -42,13 +42,9 @@ def create_file_after_timeout(path, timeout):
     create_file(path)
 
 
-#def access_self():
-#    job = get_current_job()
-#    return job.id
-
-
 class Calculator(object):
     """Test instance methods."""
+
     def __init__(self, denominator):
         self.denominator = denominator
 
@@ -63,4 +59,3 @@ def decorated_job(x, y):
 
 def long_running_job():
     time.sleep(10)
-

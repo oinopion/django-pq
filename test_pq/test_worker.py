@@ -1,7 +1,7 @@
 import os
 import time
 from datetime import datetime
-from django.test import TransactionTestCase, TestCase
+from django.test import TransactionTestCase
 from django.utils.timezone import utc
 
 from pq import Queue
@@ -30,7 +30,7 @@ class TestWorkNoJobs(TransactionTestCase):
 
     def test_work_no_jobs(self):
         self.assertEqual(self.w.work(burst=True), False,
-                'Did not expect any work on the queue.')
+                         'Did not expect any work on the queue.')
 
 
 class TestWorkerWithJobs(TransactionTestCase):
@@ -40,9 +40,8 @@ class TestWorkerWithJobs(TransactionTestCase):
         self.fooq.enqueue(say_hello, name='Frank')
 
     def test_worker_with_jobs(self):
-
         self.assertEqual(self.w.work(burst=True), True,
-                'Expected at least some work done.')
+                         'Expected at least some work done.')
 
 
 class TestWorkViaStringArg(TransactionTestCase):
@@ -55,9 +54,10 @@ class TestWorkViaStringArg(TransactionTestCase):
         """Worker processes work fed via string arguments."""
 
         self.assertEqual(self.w.work(burst=True), True,
-                'Expected at least some work done.')
+                         'Expected at least some work done.')
         job = Job.objects.get(id=self.job.id)
         self.assertEqual(job.result, 'Hi there, Frank!')
+
 
 class TestWorkIsUnreadable(TransactionTestCase):
     def setUp(self):
@@ -65,7 +65,6 @@ class TestWorkIsUnreadable(TransactionTestCase):
         self.q.save()
         self.fq = get_failed_queue()
         self.w = Worker.create([self.q])
-
 
     def test_work_is_unreadable(self):
         """Unreadable jobs are put on the failed queue."""
@@ -82,12 +81,11 @@ class TestWorkIsUnreadable(TransactionTestCase):
         job.queue = self.q
         job.save()
 
-
         self.assertEqual(self.q.count, 1)
 
         # All set, we're going to process it
 
-        self.w.work(burst=True)   # should silently pass
+        self.w.work(burst=True)  # should silently pass
         self.assertEqual(self.q.count, 0)
         self.assertEqual(self.fq.count, 1)
 
@@ -102,7 +100,6 @@ class TestWorkFails(TransactionTestCase):
 
     def test_work_fails(self):
         """Failing jobs are put on the failed queue."""
-
 
         self.w.work(burst=True)  # should silently pass
 
@@ -121,21 +118,19 @@ class TestWorkFails(TransactionTestCase):
 
 
 class TestWorkerCustomExcHandling(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
         self.fq = get_failed_queue()
+
         def black_hole(job, *exc_info):
             # Don't fall through to default behaviour of moving to failed queue
             return False
+
         self.black_hole = black_hole
         self.job = self.q.enqueue(div_by_zero)
 
-
-
     def test_custom_exc_handling(self):
         """Custom exception handling."""
-
 
         w = Worker.create([self.q], exc_handler=self.black_hole)
         w.work(burst=True)  # should silently pass
@@ -150,7 +145,6 @@ class TestWorkerCustomExcHandling(TransactionTestCase):
 
 
 class TestWorkerTimeouts(TransactionTestCase):
-
     def setUp(self):
         self.sentinel_file = '/tmp/.rq_sentinel'
         self.q = Queue()
@@ -162,9 +156,10 @@ class TestWorkerTimeouts(TransactionTestCase):
 
         # Put it on the queue with a timeout value
         jobr = self.q.enqueue(
-                create_file_after_timeout,
-                args=(self.sentinel_file, 4),
-                timeout=1)
+            create_file_after_timeout,
+            args=(self.sentinel_file, 4),
+            timeout=1
+        )
 
         self.assertEqual(os.path.exists(self.sentinel_file), False)
         self.w.work(burst=True)
@@ -182,14 +177,14 @@ class TestWorkerTimeouts(TransactionTestCase):
 
 
 class TestWorkerSetsResultTTL(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
         self.w = Worker.create([self.q])
 
     def test_worker_sets_result_ttl(self):
-        """Ensure that Worker properly sets result_ttl for individual jobs or deletes them."""
-        for ttl, outcome in ((10,10), (-1,-1), (0, None)):
+        """Ensure that Worker properly sets result_ttl for individual jobs or
+        deletes them."""
+        for ttl, outcome in ((10, 10), (-1, -1), (0, None)):
             job = self.q.enqueue(say_hello, args=('Frank',), result_ttl=ttl)
             self.w.work(burst=True)
             try:
@@ -202,7 +197,6 @@ class TestWorkerSetsResultTTL(TransactionTestCase):
 
 
 class TestWorkerDeletesExpiredTTL(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
         self.w = Worker.create([self.q])
@@ -222,9 +216,11 @@ class TestWorkerDequeueTimeout(TransactionTestCase):
 
     def setUp(self):
         self.q = Queue()
-        self.w = Worker.create([self.q],
+        self.w = Worker.create(
+            [self.q],
             expires_after=1,
-            default_worker_ttl=1)
+            default_worker_ttl=1
+        )
 
     def test_worker_dequeue_timeout(self):
         self.w.work()
@@ -232,11 +228,10 @@ class TestWorkerDequeueTimeout(TransactionTestCase):
 
 
 class TestRegisterHeartbeat(TransactionTestCase):
-
     def setUp(self):
         self.q = Queue()
         self.w = Worker.create([self.q], name='Test')
-        self.w.heartbeat = datetime(2010,1,1, tzinfo=utc)
+        self.w.heartbeat = datetime(2010, 1, 1, tzinfo=utc)
 
     def test_worker_register_heartbeat(self):
         self.w.register_heartbeat(timeout=0)

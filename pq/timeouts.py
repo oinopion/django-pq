@@ -25,15 +25,15 @@ class death_penalty_after(object):
             # body done.
             pass
 
-        # __exit__ may return True to supress further exception handling.  We
+        # __exit__ may return True to suppress further exception handling.  We
         # don't want to suppress any exceptions here, since all errors should
         # just pass through, JobTimeoutException being handled normally to the
         # invoking context.
         return False
 
     def handle_death_penalty(self, signum, frame):
-        raise JobTimeoutException('Job exceeded maximum timeout '
-                'value (%d seconds).' % self._timeout)
+        raise JobTimeoutException(
+            'Job exceeded maximum timeout value (%d seconds).' % self._timeout)
 
     def setup_death_penalty(self):
         """Sets up an alarm signal and a signal handler that raises
