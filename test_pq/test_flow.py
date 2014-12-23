@@ -89,7 +89,7 @@ class TestFlowStoreExpiredTTL(TransactionTestCase):
         time.sleep(1)
         self.w.work(burst=True)
         with self.assertRaises(FlowStore.DoesNotExist):
-            fs = FlowStore.objects.get(name='test')
+            FlowStore.objects.get(name='test')
 
 
 class TestFlowStoreExpiredTTLOnDequeue(TransactionTestCase):
@@ -107,7 +107,7 @@ class TestFlowStoreExpiredTTLOnDequeue(TransactionTestCase):
     def test_delete_expired_ttl_on_dequeue(self):
         self.w.work()
         with self.assertRaises(FlowStore.DoesNotExist):
-            fs = FlowStore.objects.get(name='test')
+            FlowStore.objects.get(name='test')
 
 
 class TestFlowStoreFailed(TransactionTestCase):
@@ -120,7 +120,7 @@ class TestFlowStoreFailed(TransactionTestCase):
             self.n_job = f.enqueue(do_nothing)
 
     def test_flowstore_failed(self):
-        fs = FlowStore.objects.get(name='test')
+        FlowStore.objects.get(name='test')
         self.w.work(burst=True)
 
         fs = FlowStore.objects.get(name='test')

@@ -46,4 +46,4 @@ class TestGetRestrictedDatetimeWeekdays(unittest.TestCase):
 
     def test_invalid_weekdays(self):
         with self.assertRaises(InvalidWeekdays):
-            dt = get_restricted_datetime(self.dt, weekdays=(7,))
+            get_restricted_datetime(self.dt, weekdays=(7,))

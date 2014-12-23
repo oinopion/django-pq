@@ -42,4 +42,3 @@ class InvalidInterval(Exception):
 
 class InvalidWeekdays(Exception):
     pass
-

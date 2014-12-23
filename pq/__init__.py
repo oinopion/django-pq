@@ -6,7 +6,6 @@ except:
 
 __all__ = ['__version__', 'Queue', 'SerialQueue', 'Worker', 'Flow']
 
-from django.core.exceptions import ImproperlyConfigured
 from .queue import Queue as PQ
 from .queue import SerialQueue as SQ
 from .worker import Worker as W

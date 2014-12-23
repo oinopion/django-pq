@@ -207,8 +207,8 @@ class TestWorkerDeletesExpiredTTL(TransactionTestCase):
         """Ensure that Worker deletes expired jobs"""
         time.sleep(1)
         self.w.work(burst=True)
-        with self.assertRaises(Job.DoesNotExist) as exc:
-            rjob = Job.objects.get(id=self.job.id)
+        with self.assertRaises(Job.DoesNotExist):
+            Job.objects.get(id=self.job.id)
 
 
 class TestWorkerDequeueTimeout(TransactionTestCase):

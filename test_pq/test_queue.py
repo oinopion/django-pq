@@ -332,11 +332,11 @@ class TestScheduleJobs(TransactionTestCase):
         self.q = Queue(scheduled=True)
         self.w = Worker.create([self.q])
 
-    def test_shedule_call(self):
+    def test_schedule_call(self):
         """Schedule to fire now"""
         job = self.q.schedule_call(now(), do_nothing)
         self.w.work(burst=True)
-        with self.assertRaises(Job.DoesNotExist) as exc:
+        with self.assertRaises(Job.DoesNotExist):
             Job.objects.get(queue_id='default', pk=job.id)
 
     def test_schedule_future_call(self):

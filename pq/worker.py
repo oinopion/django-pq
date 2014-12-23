@@ -3,8 +3,6 @@ import os
 import errno
 import random
 import time
-from datetime import timedelta
-
 try:
     from procname import setprocname
 except ImportError:

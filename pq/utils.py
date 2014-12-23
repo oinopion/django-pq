@@ -10,6 +10,7 @@ import re
 import sys
 import logging
 from datetime import timedelta, datetime, time
+
 from dateutil import relativedelta
 from django.utils.six import integer_types
 
@@ -20,7 +21,9 @@ from .exceptions import InvalidBetween, InvalidWeekdays
 def gettermsize():
     def ioctl_GWINSZ(fd):
         try:
-            import fcntl, termios, struct  # noqa
+            import fcntl
+            import termios
+            import struct
 
             ioctl = fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234')
             cr = struct.unpack('hh', ioctl)

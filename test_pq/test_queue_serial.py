@@ -96,4 +96,3 @@ class TestQueueCreationConflictIssue2(TransactionTestCase):
         self.q.enqueue(do_nothing)
         w = Worker([q, self.q])
         w.work(burst=True)
-

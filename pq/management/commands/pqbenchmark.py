@@ -37,7 +37,6 @@ def feeder(num_jobs, backend, sleep):
         from redis import Redis
         from rq import Queue
 
-        connection = Redis()
         q = Queue('benchmark', connection=Redis())
     print('enqueuing %i jobs' % num_jobs)
     for i in range(num_jobs):

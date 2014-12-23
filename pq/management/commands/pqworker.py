@@ -94,4 +94,3 @@ class Command(BaseCommand):
                 register_sentry(client, w)
 
             w.work(burst=options['burst'])
-

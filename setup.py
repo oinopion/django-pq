@@ -2,7 +2,7 @@
 
 # Fix for Python issue 15881, fixed in 2.7.6 and 3.2
 try:
-    import multiprocessing
+    import multiprocessing  # noqa
 except ImportError:
     pass
 

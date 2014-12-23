@@ -493,4 +493,3 @@ class FailedQueue(Queue):
             job.save()
             q = Queue.create(job.origin, connection=self.connection)
             q.enqueue_job(job, timeout=job.timeout)
-
