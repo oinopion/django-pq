@@ -3,4 +3,5 @@
 *.egg-info
 .tox/
 venv
+*.sqlite3
 dist/
