@@ -1,151 +1,171 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from django.db import models, migrations
 import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from django.utils.timezone import utc
+import picklefield.fields
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'Job'
-        db.create_table(u'pq_job', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('uuid', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
-            ('created_at', self.gf('django.db.models.fields.DateTimeField')()),
-            ('origin', self.gf('django.db.models.fields.CharField')(max_length=254, null=True, blank=True)),
-            ('queue', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['pq.Queue'], null=True, blank=True)),
-            ('instance', self.gf('picklefield.fields.PickledObjectField')(null=True, blank=True)),
-            ('func_name', self.gf('django.db.models.fields.CharField')(max_length=254)),
-            ('args', self.gf('picklefield.fields.PickledObjectField')(blank=True)),
-            ('kwargs', self.gf('picklefield.fields.PickledObjectField')(blank=True)),
-            ('description', self.gf('django.db.models.fields.CharField')(max_length=254)),
-            ('result_ttl', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('status', self.gf('django.db.models.fields.PositiveIntegerField')(null=True, blank=True)),
-            ('enqueued_at', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('scheduled_for', self.gf('django.db.models.fields.DateTimeField')()),
-            ('repeat', self.gf('picklefield.fields.PickledObjectField')(null=True, blank=True)),
-            ('interval', self.gf('picklefield.fields.PickledObjectField')(null=True, blank=True)),
-            ('between', self.gf('django.db.models.fields.CharField')(max_length=5, null=True, blank=True)),
-            ('weekdays', self.gf('picklefield.fields.PickledObjectField')(null=True, blank=True)),
-            ('ended_at', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('expired_at', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('result', self.gf('picklefield.fields.PickledObjectField')(null=True, blank=True)),
-            ('exc_info', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('timeout', self.gf('django.db.models.fields.PositiveIntegerField')(null=True, blank=True)),
-            ('meta', self.gf('picklefield.fields.PickledObjectField')(blank=True)),
-            ('flow', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['pq.FlowStore'], null=True, blank=True)),
-            ('if_failed', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
-            ('if_result', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
-        ))
-        db.send_create_signal(u'pq', ['Job'])
+    dependencies = [
+    ]
 
-        # Adding model 'Queue'
-        db.create_table(u'pq_queue', (
-            ('name', self.gf('django.db.models.fields.CharField')(default='default', max_length=100, primary_key=True)),
-            ('default_timeout', self.gf('django.db.models.fields.PositiveIntegerField')(null=True, blank=True)),
-            ('cleaned', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('scheduled', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('lock_expires', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2013, 4, 10, 0, 0))),
-            ('serial', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal(u'pq', ['Queue'])
-
-        # Adding model 'FlowStore'
-        db.create_table(u'pq_flowstore', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(default='', max_length=100)),
-            ('queue', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['pq.Queue'], null=True, blank=True)),
-            ('enqueued_at', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('ended_at', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('expired_at', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('status', self.gf('django.db.models.fields.PositiveIntegerField')(null=True, blank=True)),
-            ('jobs', self.gf('picklefield.fields.PickledObjectField')(blank=True)),
-        ))
-        db.send_create_signal(u'pq', ['FlowStore'])
-
-        # Adding model 'Worker'
-        db.create_table(u'pq_worker', (
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=254, primary_key=True)),
-            ('birth', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('expire', self.gf('django.db.models.fields.PositiveIntegerField')(null=True, blank=True)),
-            ('queue_names', self.gf('django.db.models.fields.CharField')(max_length=254, null=True, blank=True)),
-        ))
-        db.send_create_signal(u'pq', ['Worker'])
-
-
-    def backwards(self, orm):
-        # Deleting model 'Job'
-        db.delete_table(u'pq_job')
-
-        # Deleting model 'Queue'
-        db.delete_table(u'pq_queue')
-
-        # Deleting model 'FlowStore'
-        db.delete_table(u'pq_flowstore')
-
-        # Deleting model 'Worker'
-        db.delete_table(u'pq_worker')
-
-
-    models = {
-        u'pq.flowstore': {
-            'Meta': {'object_name': 'FlowStore'},
-            'ended_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'enqueued_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'expired_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'jobs': ('picklefield.fields.PickledObjectField', [], {'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '100'}),
-            'queue': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['pq.Queue']", 'null': 'True', 'blank': 'True'}),
-            'status': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'})
-        },
-        u'pq.job': {
-            'Meta': {'object_name': 'Job'},
-            'args': ('picklefield.fields.PickledObjectField', [], {'blank': 'True'}),
-            'between': ('django.db.models.fields.CharField', [], {'max_length': '5', 'null': 'True', 'blank': 'True'}),
-            'created_at': ('django.db.models.fields.DateTimeField', [], {}),
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '254'}),
-            'ended_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'enqueued_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'exc_info': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'expired_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'flow': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['pq.FlowStore']", 'null': 'True', 'blank': 'True'}),
-            'func_name': ('django.db.models.fields.CharField', [], {'max_length': '254'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'if_failed': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'if_result': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'instance': ('picklefield.fields.PickledObjectField', [], {'null': 'True', 'blank': 'True'}),
-            'interval': ('picklefield.fields.PickledObjectField', [], {'null': 'True', 'blank': 'True'}),
-            'kwargs': ('picklefield.fields.PickledObjectField', [], {'blank': 'True'}),
-            'meta': ('picklefield.fields.PickledObjectField', [], {'blank': 'True'}),
-            'origin': ('django.db.models.fields.CharField', [], {'max_length': '254', 'null': 'True', 'blank': 'True'}),
-            'queue': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['pq.Queue']", 'null': 'True', 'blank': 'True'}),
-            'repeat': ('picklefield.fields.PickledObjectField', [], {'null': 'True', 'blank': 'True'}),
-            'result': ('picklefield.fields.PickledObjectField', [], {'null': 'True', 'blank': 'True'}),
-            'result_ttl': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'scheduled_for': ('django.db.models.fields.DateTimeField', [], {}),
-            'status': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'timeout': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'uuid': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'weekdays': ('picklefield.fields.PickledObjectField', [], {'null': 'True', 'blank': 'True'})
-        },
-        u'pq.queue': {
-            'Meta': {'object_name': 'Queue'},
-            'cleaned': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'default_timeout': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'lock_expires': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 4, 10, 0, 0)'}),
-            'name': ('django.db.models.fields.CharField', [], {'default': "'default'", 'max_length': '100', 'primary_key': 'True'}),
-            'scheduled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'serial': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
-        },
-        u'pq.worker': {
-            'Meta': {'object_name': 'Worker'},
-            'birth': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'expire': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '254', 'primary_key': 'True'}),
-            'queue_names': ('django.db.models.fields.CharField', [], {'max_length': '254', 'null': 'True', 'blank': 'True'})
-        }
-    }
-
-    complete_apps = ['pq']
+    operations = [
+        migrations.CreateModel(
+            name='FlowStore',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(default=b'', max_length=100)),
+                ('enqueued_at', models.DateTimeField(null=True, blank=True)),
+                ('ended_at', models.DateTimeField(null=True, blank=True)),
+                ('expired_at', models.DateTimeField(null=True, verbose_name=b'expires', blank=True)),
+                ('status', models.PositiveIntegerField(blank=True, null=True, choices=[(1, b'queued'), (2, b'finished'), (3, b'failed')])),
+                ('jobs', picklefield.fields.PickledObjectField(editable=False, blank=True)),
+            ],
+            options={
+                'verbose_name': 'flow',
+                'verbose_name_plural': 'flows',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Job',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('uuid', models.CharField(max_length=64, null=True, blank=True)),
+                ('created_at', models.DateTimeField()),
+                ('origin', models.CharField(max_length=254, null=True, blank=True)),
+                ('instance', picklefield.fields.PickledObjectField(null=True, editable=False, blank=True)),
+                ('func_name', models.CharField(max_length=254)),
+                ('args', picklefield.fields.PickledObjectField(editable=False, blank=True)),
+                ('kwargs', picklefield.fields.PickledObjectField(editable=False, blank=True)),
+                ('description', models.CharField(max_length=254)),
+                ('result_ttl', models.IntegerField(null=True, blank=True)),
+                ('status', models.PositiveIntegerField(blank=True, null=True, choices=[(0, b'scheduled'), (1, b'queued'), (2, b'finished'), (3, b'failed'), (4, b'started'), (5, b'flow')])),
+                ('enqueued_at', models.DateTimeField(null=True, blank=True)),
+                ('scheduled_for', models.DateTimeField()),
+                ('repeat', picklefield.fields.PickledObjectField(help_text=b'Number of times to repeat. -1 for forever.', null=True, editable=False, blank=True)),
+                ('interval', picklefield.fields.PickledObjectField(help_text=b'Timedelta till next job', null=True, editable=False, blank=True)),
+                ('between', models.CharField(max_length=5, null=True, blank=True)),
+                ('weekdays', picklefield.fields.PickledObjectField(null=True, editable=False, blank=True)),
+                ('ended_at', models.DateTimeField(null=True, blank=True)),
+                ('expired_at', models.DateTimeField(null=True, verbose_name=b'expires', blank=True)),
+                ('result', picklefield.fields.PickledObjectField(null=True, editable=False, blank=True)),
+                ('exc_info', models.TextField(null=True, blank=True)),
+                ('timeout', models.PositiveIntegerField(null=True, blank=True)),
+                ('meta', picklefield.fields.PickledObjectField(editable=False, blank=True)),
+                ('if_failed', models.CharField(max_length=64, null=True, blank=True)),
+                ('if_result', models.CharField(max_length=64, null=True, blank=True)),
+                ('flow', models.ForeignKey(blank=True, to='pq.FlowStore', null=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Queue',
+            fields=[
+                ('name', models.CharField(default=b'default', max_length=100, serialize=False, primary_key=True)),
+                ('default_timeout', models.PositiveIntegerField(null=True, blank=True)),
+                ('cleaned', models.DateTimeField(null=True, blank=True)),
+                ('scheduled', models.BooleanField(default=False, help_text=b'Optimisation: scheduled tasks are slower.')),
+                ('lock_expires', models.DateTimeField(default=datetime.datetime(2014, 12, 25, 13, 17, 33, 511994, tzinfo=utc))),
+                ('serial', models.BooleanField(default=False)),
+                ('idempotent', models.BooleanField(default=False)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Worker',
+            fields=[
+                ('name', models.CharField(max_length=254, serialize=False, primary_key=True)),
+                ('birth', models.DateTimeField(null=True, blank=True)),
+                ('expire', models.PositiveIntegerField(null=True, verbose_name=b'Polling TTL', blank=True)),
+                ('queue_names', models.CharField(max_length=254, null=True, blank=True)),
+                ('stop', models.BooleanField(default=False, help_text=b'Send a stop signal to the worker')),
+                ('heartbeat', models.DateTimeField(null=True, blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AddField(
+            model_name='job',
+            name='queue',
+            field=models.ForeignKey(blank=True, to='pq.Queue', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='flowstore',
+            name='queue',
+            field=models.ForeignKey(blank=True, to='pq.Queue', null=True),
+            preserve_default=True,
+        ),
+        migrations.CreateModel(
+            name='DequeuedJob',
+            fields=[
+            ],
+            options={
+                'proxy': True,
+            },
+            bases=('pq.job',),
+        ),
+        migrations.CreateModel(
+            name='FailedJob',
+            fields=[
+            ],
+            options={
+                'proxy': True,
+            },
+            bases=('pq.job',),
+        ),
+        migrations.CreateModel(
+            name='FailedQueue',
+            fields=[
+            ],
+            options={
+                'proxy': True,
+            },
+            bases=('pq.queue',),
+        ),
+        migrations.CreateModel(
+            name='FlowQueue',
+            fields=[
+            ],
+            options={
+                'proxy': True,
+            },
+            bases=('pq.queue',),
+        ),
+        migrations.CreateModel(
+            name='QueuedJob',
+            fields=[
+            ],
+            options={
+                'proxy': True,
+            },
+            bases=('pq.job',),
+        ),
+        migrations.CreateModel(
+            name='ScheduledJob',
+            fields=[
+            ],
+            options={
+                'proxy': True,
+            },
+            bases=('pq.job',),
+        ),
+        migrations.CreateModel(
+            name='SerialQueue',
+            fields=[
+            ],
+            options={
+                'proxy': True,
+            },
+            bases=('pq.queue',),
+        ),
+    ]

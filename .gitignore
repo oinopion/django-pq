@@ -2,4 +2,5 @@
 *.egg
 *.egg-info
 .tox/
+venv
 dist/

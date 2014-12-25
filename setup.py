@@ -20,7 +20,7 @@ def get_long_description():
 
 setup(
     name='django-pq',
-    version='0.4.0-dev',
+    version='0.4.0a1',
 
     description='A task queue based on the RQ API with a PostgreSQL backend',
     long_description=get_long_description(),

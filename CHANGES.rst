@@ -4,6 +4,11 @@
 Changelog
 ---------
 
+v0.4.0 (????-??-??)
+
+- Support Django 1.7, while also dropping support for 1.5
+
+
 v0.3.1 (2013-04-20)
 ^^^^^^^^^^^^^^^^^^^
 
@@ -18,7 +23,7 @@ v0.3 (2013-04-10)
 - Added weekdays option for scheduled_call/enqueued_call
 
 v0.2 (2013-04-6)
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 
 - Implement scheduled tasks
 - Implement a serial queue
